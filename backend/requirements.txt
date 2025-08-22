@@ -1,0 +1,7 @@
+fastapi
+uvicorn[standard]
+websockets
+numpy
+tensorflow
+# spektral # Add if you find a compatible TF version
+pyyaml
