@@ -3,8 +3,6 @@ BCI with empathy and strong safety measures
 Grand Council Sentient (GCS)
 ![alt text](https://img.shields.io/badge/build-passing-brightgreen)
 
-![alt text](https://img.shields.io/badge/License-MIT-yellow.svg)
-
 ![alt text](https://img.shields.io/badge/version-7.0-blue)
 An Empathetic, Co-Adaptive, and Therapeutic Brain-Computer Interface.
 The Vision
