@@ -1,0 +1,20 @@
+grand_council_sentient/
+├── .devcontainer/                 # <-- NEW: Configuration for GitHub Codespaces
+│   ├── devcontainer.json
+│   └── docker-compose.yml
+│
+├── backend/                       # <-- All Python/GCS code lives here
+│   ├── gcs/
+│   │   ├── __init__.py
+│   │   ├── ... (all our .py modules)
+│   ├── main.py
+│   └── requirements.txt
+│
+├── frontend/                      # <-- All React/UI code lives here
+│   ├── public/
+│   ├── src/
+│   │   ├── App.css
+│   │   └── App.js
+│   └── package.json
+│
+└── render.yaml                    # <-- NEW: Configuration for Render deployment
