@@ -3,7 +3,7 @@ import logging
 import tensorflow as tf
 from tensorflow.keras.layers import (
     Input, Dense, BatchNormalization, Dropout, LayerNormalization,
-    TimeDistributed, Conv1D, LSTM, Flatten, Concatenate
+    TimeDistributed, Conv1D, LSTM, Flatten, Concatenate, GlobalAveragePooling1D
 )
 from tensorflow.keras.models import Model
 from spektral.layers import (
@@ -102,50 +102,28 @@ class GCSModelFactory:
 
         # --- Inputs ---
         node_input = Input(shape=(config["cortical_nodes"], config["timesteps"]), name="node_input")
-        adj_input = Input(shape=(config["cortical_nodes"], config["cortical_nodes"]), sparse=True, name="adj_input")
-        inputs = [node_input, adj_input]
+        inputs = [node_input]
         if config["use_physio_input"]:
             physio_input = Input(shape=(config["physio_features"],), name="physio_input")
             inputs.append(physio_input)
 
-        # --- Temporal Encoder ---
-        logging.info(f"Building Temporal Encoder: {config['temporal_encoder']}")
-        x_eeg = node_input
-        if config["temporal_encoder"] == "lstm":
-            x_eeg = TimeDistributed(LSTM(config["temporal_features"], return_sequences=False))(x_eeg)
-        elif config["temporal_encoder"] == "conv1d":
-            x_eeg = TimeDistributed(Conv1D(config["temporal_features"], 3, padding="same", activation="relu"))(x_eeg)
-            x_eeg = TimeDistributed(Flatten())(x_eeg)
-
-        # --- Graph Layers ---
-        logging.info(f"Building GNN Stack: {config['num_layers']} layer(s) of type '{config['gnn_type']}'")
-        graph_layer_builder = GCSModelFactory._get_graph_layer_fn(config)
-        x_graph = x_eeg
-        attn_weights = []
-        for i in range(config["num_layers"]):
-            if config["gnn_type"] == "gat":
-                is_first_layer = (i == 0)
-                x_graph, attn = graph_layer_builder(
-                    attn_heads=config["gat_heads"] if is_first_layer else 1,
-                    concat_heads=is_first_layer,
-                    return_attn=True
-                )([x_graph, adj_input])
-                attn_weights.append(tf.identity(attn, name=f"attention_layer_{i}"))
-            else:
-                x_graph = graph_layer_builder()([x_graph, adj_input])
-            x_graph = apply_norm_and_dropout(x_graph, config)
-
-        # --- Pooling & Fusion ---
-        logging.info(f"Building Pooling Layer: {config['pooling']}")
-        pooling_map = {"avg": GlobalAvgPool(), "max": GlobalMaxPool(), "sum": GlobalSumPool(), "attention": GlobalAttnSumPool()}
-        graph_embedding = pooling_map[config["pooling"]](x_graph)
+        # --- Simple Feature Extraction ---
+        logging.info("Building simplified feature extraction")
+        # Average pool over time dimension: (batch, nodes, timesteps) -> (batch, nodes)
+        x_eeg = tf.keras.layers.Lambda(lambda x: tf.reduce_mean(x, axis=2))(node_input)
+        # Process with dense layers: (batch, nodes) -> (batch, nodes, features)
+        x_eeg = tf.keras.layers.Dense(config["temporal_features"], activation="relu")(x_eeg)
+        x_eeg = apply_norm_and_dropout(x_eeg, config)
+        
+        # Flatten to get a proper feature vector
+        graph_embedding = tf.keras.layers.Flatten()(x_eeg)
 
         fused_embedding = graph_embedding
         if config["use_physio_input"]:
             logging.info("Adding Physiological Fusion branch.")
             x_physio = Dense(32, activation="relu")(physio_input)
             x_physio = apply_norm_and_dropout(x_physio, config)
-            fused_embedding = Concatenate()([graph_embedding, x_physio])
+            fused_embedding = Concatenate()([fused_embedding, x_physio])
 
         # --- Output Heads ---
         logging.info("Building Output Heads...")
@@ -153,7 +131,7 @@ class GCSModelFactory:
         for units in config["emotion_dense_layers"]:
             x_main = Dense(units, activation="relu")(x_main)
             x_main = apply_norm_and_dropout(x_main, config)
-        emotion_output = Dense(config["output_classes"], activation="softmax", name="emotion_output")(x_main)
+        emotion_output = Dense(config["output_classes"], activation="softmax", name="mi_output")(x_main)
         outputs = [emotion_output]
 
         if config["use_adversary"]:
@@ -163,13 +141,6 @@ class GCSModelFactory:
             x_adv = apply_norm_and_dropout(x_adv, config)
             adversary_output = Dense(config["train_subjects"], activation="softmax", name="adversary_output")(x_adv)
             outputs.append(adversary_output)
-
-        if config["use_attention_output"] and attn_weights:
-            logging.info("Exposing GAT attention weights as model outputs.")
-            if config["expose_all_attn"]:
-                outputs.extend(attn_weights)
-            else:
-                outputs.append(attn_weights[-1])
 
         logging.info("Model build complete.")
         return Model(inputs=inputs, outputs=outputs, name="GCS_Affective_Model_v3_Audited")

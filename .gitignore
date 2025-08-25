@@ -1,0 +1,34 @@
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Model files (can be large)
+models/*.h5
+models/*.keras
+models/*.pkl
+
+# Data files (can be large)
+data/*.pkl
+data/*.h5
+data/*.csv
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
