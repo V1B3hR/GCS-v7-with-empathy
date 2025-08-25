@@ -125,6 +125,7 @@ class GCSModelFactory:
         for i in range(config["num_layers"]):
             if config["gnn_type"] == "gat":
                 is_first_layer = (i == 0)
+                layer_name = f"gat_conv_{i+1}"
                 x_graph, attn = graph_layer_builder(
                     attn_heads=config["gat_heads"] if is_first_layer else 1,
                     concat_heads=is_first_layer,
@@ -153,7 +154,7 @@ class GCSModelFactory:
         for units in config["emotion_dense_layers"]:
             x_main = Dense(units, activation="relu")(x_main)
             x_main = apply_norm_and_dropout(x_main, config)
-        emotion_output = Dense(config["output_classes"], activation="softmax", name="emotion_output")(x_main)
+        emotion_output = Dense(config["output_classes"], activation="softmax", name="mi_output")(x_main)
         outputs = [emotion_output]
 
         if config["use_adversary"]:

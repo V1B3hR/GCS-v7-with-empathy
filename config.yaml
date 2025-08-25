@@ -1,5 +1,10 @@
 affective_model:
   output_model_path: "models/affective_state_classifier.h5"
+  deap_dataset_path: "data/deap_dataset.pkl"
+  physio_branch_units: 64
+  voice_branch_units: 64
+  fusion_units: 128
+  dropout_rate: 0.3
   # NEW: Centralized, auditable emotion mapping
   emotion_mapping:
     # The order here MUST match the model's softmax output
@@ -9,3 +14,22 @@ affective_model:
       DEPRESSION: { valence: -0.8, arousal: 3.0 }
       JOY:        { valence:  0.8, arousal: 6.0 }
       ANGER:      { valence: -0.6, arousal: 9.0 }
+
+# Core model configuration
+cortical_nodes: 68
+timesteps: 250
+physio_features: 2
+batch_size: 32
+epochs: 10
+output_model_dir: "models"
+graph_scaffold_path: "data/graph_scaffold.npz"
+online_learning_rate: 0.0001
+
+# Neuromodulation configuration
+neuromodulation:
+  enabled: true
+  default_target_nerve: "vagus"
+  available_modalities: ["ultrasound", "electrical"]
+  ultrasound_params:
+    duration_s: 1.0
+    intensity: 0.5
