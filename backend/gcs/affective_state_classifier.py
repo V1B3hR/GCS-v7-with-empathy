@@ -23,18 +23,21 @@ class AffectiveModelBuilder:
         """
         logging.info("Building the multi-modal Affective State Classifier...")
 
-        # --- 1. Leverage the Pre-Trained GCS Encoder ---
-        # We will use the GCS model's inputs and its powerful graph embedding output.
-        node_input = gcs_foundational_model.get_layer("node_input").input
-        adj_input = gcs_foundational_model.get_layer("adj_input").input
-        
-        # This is the rich, neuro-symbolically processed EEG feature vector
-        graph_embedding = gcs_foundational_model.get_layer("global_avg_pool").output # Or whichever pooling was used
+        # --- 1. Create new inputs matching the foundational model ---
+        node_input = Input(shape=(config["cortical_nodes"], config["timesteps"]), name="node_input")
         
         # CRITICAL: Freeze the foundational model. We don't want to retrain it.
-        # We are only using it as a fixed, expert feature extractor.
         gcs_foundational_model.trainable = False
         logging.info("Pre-trained GCS foundational model has been frozen for transfer learning.")
+
+        # Get graph embedding by calling the foundational model on our input
+        graph_embedding = gcs_foundational_model(node_input)
+        # The foundational model returns [mi_output, adversary_output], we want the features before classification
+        # Let's use the output from before the final classification layer
+        feature_extractor = Model(inputs=gcs_foundational_model.input, 
+                                outputs=gcs_foundational_model.get_layer("flatten").output)
+        feature_extractor.trainable = False
+        graph_embedding = feature_extractor(node_input)
 
         # --- 2. Define Other Modality Inputs ---
         physio_input = Input(shape=(config["physio_features"],), name="physio_input")
@@ -67,8 +70,8 @@ class AffectiveModelBuilder:
         arousal_output = Dense(1, name="arousal_output")(x)
 
         # --- 7. Assemble the Final Model ---
-        # The inputs now include the inputs from the GCS model plus our new ones
-        final_inputs = [node_input, adj_input, physio_input, voice_input]
+        # The inputs now include all our inputs
+        final_inputs = [node_input, physio_input, voice_input]
         
         final_model = Model(
             inputs=final_inputs,

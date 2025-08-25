@@ -6,6 +6,9 @@ from typing import Dict, Tuple, Optional
 import numpy as np
 import tensorflow as tf
 
+# Enable unsafe deserialization for Lambda layers
+tf.keras.config.enable_unsafe_deserialization()
+
 from .inference import GCSInference
 from .neuromodulation_controller import NeuromodulationController
 from .online_learning_module import OnlineLearningModule
@@ -42,7 +45,9 @@ class ClosedLoopAgent:
         foundational_model_path = os.path.join(config["output_model_dir"], "gcs_fold_1.h5")
         affective_model_path = config.get("affective_model", {}).get("output_model_path")
         self.inference_engine = GCSInference(foundational_model_path, config["graph_scaffold_path"])
-        self.affective_model = tf.keras.models.load_model(affective_model_path)
+        
+        self.affective_model = tf.keras.models.load_model(affective_model_path, safe_mode=False)
+        
         self.mod_controller = NeuromodulationController(config)
         self.feedback_detector = FeedbackDetector(config)
         self.olm = OnlineLearningModule(self.inference_engine.model, config)
@@ -73,7 +78,9 @@ class ClosedLoopAgent:
         # ... (This function is already excellent and requires no changes)
         model_inputs = []
         input_names = [t.name for t in self.affective_model.inputs]
-        name_to_data = {"node_input": live_data.get("source_eeg"), "adj_input": live_data.get("adj_matrix"), "physio_input": live_data.get("physio")}
+        name_to_data = {"node_input": live_data.get("source_eeg"), 
+                       "physio_input": live_data.get("physio"), 
+                       "voice_input": live_data.get("voice")}
         for nm in input_names:
             key = nm.split(":")[0]
             if key not in name_to_data or name_to_data[key] is None:

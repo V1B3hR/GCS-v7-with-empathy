@@ -12,7 +12,9 @@ class DataPipeline:
         """CONCEPTUAL: Simulates eLORETA source localization."""
         logging.info(f"Applying source localization to data of shape {raw_eeg_data.shape}...")
         projection_matrix = np.random.randn(self.config["eeg_channels"], self.config["cortical_nodes"])
-        return np.einsum('...ec,...cn->...en', raw_eeg_data, projection_matrix)
+        # Transform from (samples, timesteps, channels) to (samples, nodes, timesteps)
+        result = np.einsum('...tc,...cn->...nt', raw_eeg_data, projection_matrix)
+        return result
 
     def load_real_data_for_loso(self):
         """CONCEPTUAL: Loads and preprocesses real multi-subject EEG for foundational training."""

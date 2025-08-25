@@ -24,6 +24,9 @@ epochs: 10
 output_model_dir: "models"
 graph_scaffold_path: "data/graph_scaffold.npz"
 online_learning_rate: 0.0001
+train_subjects: 10
+eeg_channels: 64
+use_physio_input: false
 
 # Neuromodulation configuration
 neuromodulation:

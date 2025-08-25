@@ -53,7 +53,15 @@ class Trainer:
         dataset_paths = [self.config['affective_model']['deap_dataset_path']]
         X, y = self.pipeline.load_affective_data(dataset_paths)
         model.compile(optimizer='adam', loss={'valence_output': 'mae', 'arousal_output': 'mae'})
-        model.fit([X['eeg'], X['physio'], X['voice']], [y['valence'], y['arousal']],
+        
+        logging.info(f"Model expects {len(model.inputs)} inputs: {[inp.name for inp in model.inputs]}")
+        logging.info(f"Data shapes: EEG {X['eeg'].shape}, Physio {X['physio'].shape}, Voice {X['voice'].shape}")
+        
+        # The affective model expects [eeg, physio, voice] inputs
+        inputs = [X['eeg'], X['physio'], X['voice']]
+        targets = [y['valence'], y['arousal']]
+        
+        model.fit(inputs, targets,
                   batch_size=self.config['batch_size'], epochs=self.config['epochs'], validation_split=0.2)
         model_path = self.config['affective_model']['output_model_path']
         model.save(model_path)
