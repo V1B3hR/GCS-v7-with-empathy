@@ -1,0 +1,11 @@
+affective_model:
+  output_model_path: "models/affective_state_classifier.h5"
+  # NEW: Centralized, auditable emotion mapping
+  emotion_mapping:
+    # The order here MUST match the model's softmax output
+    class_order: ["ANXIETY", "DEPRESSION", "JOY", "ANGER"]
+    anchors:
+      ANXIETY:    { valence: -0.5, arousal: 8.0 }
+      DEPRESSION: { valence: -0.8, arousal: 3.0 }
+      JOY:        { valence:  0.8, arousal: 6.0 }
+      ANGER:      { valence: -0.6, arousal: 9.0 }
