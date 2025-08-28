@@ -103,7 +103,7 @@ class ClosedLoopAgent:
         # --- 1) SENSE ---
         source_chunk = live_data["source_eeg"]
         adj_matrix = live_data["adj_matrix"]
-        intent, conf, attention = self.inference_engine.predict([source_chunk, adj_matrix])
+        intent, conf, attention = self.inference_engine.predict([source_chunk, adj_matrix], return_legacy_format=True)
         cognitive_state = {"intent": intent, "confidence": float(conf)}
         valence, arousal = self._run_affective_inference(live_data)
         affective_state = {"valence": valence, "arousal": arousal}
