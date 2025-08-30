@@ -62,6 +62,20 @@ The completion of the software architecture marks the end of the foundational ph
 Hardware Integration: The next major step is to integrate the system with real, physical hardware (e.g., OpenBCI, Polar H10) to move from simulation to a live, operational prototype.
 UI/UX Refinement: Continuously improve the Cognitive Dashboard to make it more intuitive, transparent, and empowering for the user.
 Closed-Loop Policy Training: Develop the Reinforcement Learning agent that can learn a personalized, empathetic therapeutic policy, turning the GCS into a truly active and helpful partner.
+
+## Research Integration
+This project actively integrates cutting-edge brain medicine research to enhance system capabilities.
+
+### Research Analysis Documents
+- **[BRAIN_MEDICINE_ANALYSIS.md](BRAIN_MEDICINE_ANALYSIS.md)**: Comprehensive analysis of how brain medicine research benefits each GCS module
+- **[RESEARCH_MAPPING.md](RESEARCH_MAPPING.md)**: Detailed mapping of research areas to system components
+- **[research_analyzer.py](research_analyzer.py)**: Tool for systematically analyzing research articles for relevance to GCS modules
+
+### Key Research Areas
+- **Therapeutic Neuromodulation**: Informing safe and effective brain stimulation protocols
+- **Affective Neuroscience**: Enhancing emotion recognition and empathy capabilities  
+- **Real-time Neural Monitoring**: Improving feedback and adaptive systems
+- **Personalized Medicine**: Enabling individual optimization across all modules
   
   Our Ethical Principles
 This project is governed by a set of non-negotiable principles.
