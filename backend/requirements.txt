@@ -1,7 +1,8 @@
-fastapi
-uvicorn[standard]
-websockets
-numpy
-tensorflow
-# spektral # Add if you find a compatible TF version
-pyyaml
+numpy>=1.23
+tensorflow>=2.12
+pyyaml>=6.0
+cryptography>=41.0
+scikit-learn>=1.2
+# Logging is built-in, but you may want loguru or similar for advanced logging
+# loguru>=0.7
+# If you use argparse and other stdlib modules, no need to list them
