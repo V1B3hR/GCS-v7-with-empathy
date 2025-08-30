@@ -12,7 +12,7 @@ tf.keras.config.enable_unsafe_deserialization()
 from .inference import GCSInference
 from .neuromodulation_controller import NeuromodulationController
 from .online_learning_module import OnlineLearningModule
-from .feedback_detector import FeedbackDetector
+from .feedback_detector import AdaptiveFeedbackDetector as FeedbackDetector
 
 # --- Helper Functions ---
 def softmax_emotion_to_valence_arousal(prob: np.ndarray, config: Dict) -> Tuple[float, float]:
@@ -44,7 +44,33 @@ class ClosedLoopAgent:
         self.is_running = False
         foundational_model_path = os.path.join(config["output_model_dir"], "gcs_fold_1.h5")
         affective_model_path = config.get("affective_model", {}).get("output_model_path")
-        self.inference_engine = GCSInference(foundational_model_path, config["graph_scaffold_path"])
+        
+        # Create a temporary config for GCSInference
+        import tempfile
+        import yaml
+        temp_config = {
+            "model_path": foundational_model_path,
+            "graph_path": config["graph_scaffold_path"],
+            "labels": {0: "LEFT_HAND", 1: "RIGHT_HAND"},
+            "batch_size": 16,
+            "safe_mode": False,
+            "confidence_threshold": 0.4,
+            "monitoring": True,
+            "output_layers": None,
+            "attention_extractor": None
+        }
+        
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+            yaml.dump(temp_config, f)
+            temp_config_path = f.name
+        
+        self.inference_engine = GCSInference(temp_config_path)
+        
+        # Clean up temp config file
+        try:
+            os.unlink(temp_config_path)
+        except:
+            pass
         
         self.affective_model = tf.keras.models.load_model(affective_model_path, safe_mode=False)
         
