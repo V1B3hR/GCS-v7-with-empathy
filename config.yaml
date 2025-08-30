@@ -1,6 +1,6 @@
 affective_model:
   output_model_path: "models/affective_state_classifier.h5"
-  deap_dataset_path: "data/deap_dataset.pkl"
+  deap_dataset_path: "data/deap_dataset.npz"
   physio_branch_units: 64
   voice_branch_units: 64
   fusion_units: 128
@@ -14,6 +14,20 @@ affective_model:
       DEPRESSION: { valence: -0.8, arousal: 3.0 }
       JOY:        { valence:  0.8, arousal: 6.0 }
       ANGER:      { valence: -0.6, arousal: 9.0 }
+
+# Real data paths configuration
+real_data_paths:
+  eeg_data_dir: "data/real_eeg"  # Directory containing real EEG data files (.npz, .npy)
+  # Example structure:
+  # data/real_eeg/
+  #   ├── subject_01.npz  # Contains 'eeg' and 'labels' arrays
+  #   ├── subject_02.npz
+  #   └── ...
+  
+  # Alternative: individual file paths
+  # eeg_files:
+  #   - "data/subject1_motor_imagery.npz"
+  #   - "data/subject2_motor_imagery.npz"
 
 # Core model configuration
 cortical_nodes: 68

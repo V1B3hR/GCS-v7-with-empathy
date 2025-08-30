@@ -25,6 +25,12 @@ models/*.pkl
 data/*.pkl
 data/*.h5
 data/*.csv
+data/deap_dataset.npz
+data/real_eeg/
+
+# Test and temporary files
+test_*.py
+create_sample_real_data.py
 
 # Logs
 *.log
