@@ -13,23 +13,93 @@ class Trainer:
         graph_data = np.load(self.config["graph_scaffold_path"])
         self.adj_matrix = graph_data['adjacency_matrix']
 
+    def extract_features_labels(self, train_data):
+        """Extract features and labels from training data for LOSO cross-validation."""
+        X_list = []
+        y_list = []
+        
+        for subject_data in train_data:
+            X_list.append(subject_data['data'])
+            y_list.append(subject_data['labels'])
+        
+        # Concatenate all subjects' data
+        X_train = np.concatenate(X_list, axis=0)
+        y_train = np.concatenate(y_list, axis=0)
+        
+        return X_train, y_train
+
     def run_loso_cross_validation(self):
         logging.info("Starting Leave-One-Subject-Out Cross-Validation...")
         try:
             all_data = self.pipeline.load_real_data_for_loso()
             model = GCSModelFactory.build_affective_model(self.config)
+            
+            fold_results = []
+            
             for fold, held_out_subject in enumerate(all_data):
                 logging.info(f"Processing fold {fold + 1}/{len(all_data)}")
                 train_data = [subj for i, subj in enumerate(all_data) if i != fold]
                 if not train_data:
                     logging.warning(f"No training data for fold {fold + 1}")
                     continue
-                # TODO: Extract features/labels from train_data
-                # Example:
-                # X_train, y_train = extract_features_labels(train_data)
-                model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-                # Uncomment when feature extraction is implemented:
-                # model.fit(X_train, y_train, batch_size=self.config.get('batch_size', 32), epochs=self.config.get('epochs', 10))
+                
+                # Extract features/labels from train_data
+                X_train, y_train = self.extract_features_labels(train_data)
+                logging.info(f"Training data shape: {X_train.shape}, Labels shape: {y_train.shape}")
+                
+                # Prepare validation data from held-out subject
+                X_val = held_out_subject['data']
+                y_val = held_out_subject['labels']
+                logging.info(f"Validation data shape: {X_val.shape}, Labels shape: {y_val.shape}")
+                
+                # Compile model for this fold
+                model.compile(
+                    optimizer='adam', 
+                    loss='sparse_categorical_crossentropy', 
+                    metrics=['accuracy']
+                )
+                
+                # Train the model
+                history = model.fit(
+                    X_train, y_train,
+                    validation_data=(X_val, y_val),
+                    batch_size=self.config.get('batch_size', 32),
+                    epochs=self.config.get('epochs', 10),
+                    verbose=1
+                )
+                
+                # Evaluate on validation set
+                val_loss, val_acc = model.evaluate(X_val, y_val, verbose=0)
+                fold_results.append({
+                    'fold': fold + 1,
+                    'val_loss': val_loss,
+                    'val_accuracy': val_acc,
+                    'subject_id': held_out_subject['subject_id'],
+                    'source_file': held_out_subject.get('source_file', 'unknown')
+                })
+                
+                logging.info(f"Fold {fold + 1} - Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}")
+                
+                # Save model for this fold
+                model_path = os.path.join(self.config.get('output_model_dir', 'models'), f"gcs_fold_{fold + 1}.h5")
+                os.makedirs(os.path.dirname(model_path), exist_ok=True)
+                try:
+                    model.save(model_path)
+                    logging.info(f"Model for fold {fold + 1} saved to {model_path}")
+                except Exception as e:
+                    logging.error(f"Failed to save model for fold {fold + 1}: {e}", exc_info=True)
+            
+            # Log summary results
+            if fold_results:
+                avg_acc = np.mean([r['val_accuracy'] for r in fold_results])
+                avg_loss = np.mean([r['val_loss'] for r in fold_results])
+                logging.info(f"LOSO Cross-Validation Summary:")
+                logging.info(f"Average Validation Accuracy: {avg_acc:.4f}")
+                logging.info(f"Average Validation Loss: {avg_loss:.4f}")
+                
+                for result in fold_results:
+                    logging.info(f"Fold {result['fold']} (Subject {result['subject_id']}, {result['source_file']}): "
+                                f"Acc={result['val_accuracy']:.4f}, Loss={result['val_loss']:.4f}")
                 model_path = os.path.join(self.config.get('output_model_dir', 'models'), f"gcs_fold_{fold + 1}.h5")
                 os.makedirs(os.path.dirname(model_path), exist_ok=True)
                 try:
