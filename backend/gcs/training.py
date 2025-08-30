@@ -1,10 +1,21 @@
 import os
 import numpy as np
 import logging
-import tensorflow as tf
+try:
+    import tensorflow as tf
+    TF_AVAILABLE = True
+except ImportError:
+    TF_AVAILABLE = False
+    logging.warning("TensorFlow not available, some functionality will be limited")
+
 from .data_pipeline import DataPipeline
-from .model import GCSModelFactory
-from .affective_state_classifier import AffectiveModelBuilder
+try:
+    from .model import GCSModelFactory
+    from .affective_state_classifier import AffectiveModelBuilder
+    MODEL_AVAILABLE = True
+except ImportError:
+    MODEL_AVAILABLE = False
+    logging.warning("Model modules not available, using fallback implementations")
 
 class Trainer:
     def __init__(self, config):
@@ -30,6 +41,11 @@ class Trainer:
 
     def run_loso_cross_validation(self):
         logging.info("Starting Leave-One-Subject-Out Cross-Validation...")
+        
+        if not TF_AVAILABLE or not MODEL_AVAILABLE:
+            logging.error("TensorFlow or model modules not available. Cannot run training.")
+            return
+        
         try:
             all_data = self.pipeline.load_real_data_for_loso()
             model = GCSModelFactory.build_affective_model(self.config)
@@ -114,6 +130,11 @@ class Trainer:
 
     def train_affective_model(self):
         logging.info("--- Starting Training for Affective State Classifier ---")
+        
+        if not TF_AVAILABLE or not MODEL_AVAILABLE:
+            logging.error("TensorFlow or model modules not available. Cannot run training.")
+            return
+        
         try:
             foundational_model = GCSModelFactory.build_affective_model(self.config)
             model = AffectiveModelBuilder.build_fused_classifier(self.config, foundational_model)
