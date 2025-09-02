@@ -294,9 +294,11 @@ class CognitiveRCD:
                 logging.critical(f"CIRCUIT BREAKER TRIPPED: {reason}")
                 logging.critical("System operation halted for safety")
                 
-                # Execute emergency callbacks
-                for callback in self.safety_callbacks.get(SafetyLevel.EMERGENCY, []):
+                # Execute emergency callbacks (without infinite recursion)
+                emergency_callbacks = self.safety_callbacks.get(SafetyLevel.EMERGENCY, [])
+                for callback in emergency_callbacks:
                     try:
+                        # Pass reason string instead of violation to avoid recursion
                         callback(reason)
                     except Exception as e:
                         logging.error(f"Emergency callback failed: {e}")
