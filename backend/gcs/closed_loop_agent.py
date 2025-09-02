@@ -12,7 +12,7 @@ tf.keras.config.enable_unsafe_deserialization()
 from .inference import GCSInference
 from .neuromodulation_controller import NeuromodulationController
 from .online_learning_module import OnlineLearningModule
-from .feedback_detector import FeedbackDetector
+from .feedback_detector import AdaptiveFeedbackDetector
 
 # --- Helper Functions ---
 def softmax_emotion_to_valence_arousal(prob: np.ndarray, config: Dict) -> Tuple[float, float]:
