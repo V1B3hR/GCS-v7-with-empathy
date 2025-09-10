@@ -9,42 +9,42 @@ import tensorflow as tf
 # Enable unsafe deserialization for Lambda layers
 tf.keras.config.enable_unsafe_deserialization()
 
-from .inference import GCSInference
-from .neuromodulation_controller import NeuromodulationController
-from .online_learning_module import OnlineLearningModule
-from .feedback_detector import AdaptiveFeedbackDetector as FeedbackDetector
-
-# --- Helper Functions ---
-def softmax_emotion_to_valence_arousal(prob: np.ndarray, config: Dict) -> Tuple[float, float]:
-    """Maps emotion softmax probabilities to a continuous (valence, arousal) space using anchors from the config."""
-    if prob.ndim == 2:
-        prob = prob[0]
-
-    # BEST PRACTICE: Load mapping from config, not hard-coded
-    mapping_config = config.get("affective_model", {}).get("emotion_mapping", {})
-    keys = mapping_config.get("class_order", [])
-    anchors = mapping_config.get("anchors", {})
-
-    if len(prob) != len(keys):
-        raise ValueError(f"Model output size ({len(prob)}) does not match emotion classes in config ({len(keys)}).")
-
-    val = sum(prob[i] * anchors.get(k, {}).get("valence", 0.0) for i, k in enumerate(keys))
-    aro = sum(prob[i] * anchors.get(k, {}).get("arousal", 0.0) for i, k in enumerate(keys))
-
-    # Scale valence from [-1, 1] to [0, 10] for consistency
-    val_scaled = (val + 1.0) * 5.0
-    return float(val_scaled), float(aro)
-
-# --- The Master Agent ---
-class ClosedLoopAgent:
-    """The master agent that orchestrates the full SENSE -> DECIDE -> ACT -> LEARN loop."""
-    def __init__(self, config: Dict):
-        # ... (init logic remains the same, it's already excellent)
-        self.config = config
-        self.is_running = False
-        foundational_model_path = os.path.join(config["output_model_dir"], "gcs_fold_1.h5")
-        affective_model_path = config.get("affective_model", {}).get("output_model_path")
-        
+12| from .inference import GCSInference
+13| from .neuromodulation_controller import NeuromodulationController
+14| from .online_learning_module import OnlineLearningModule
+15| from .feedback_detector import AdaptiveFeedbackDetector
+16| 
+17| # --- Helper Functions ---
+18| def softmax_emotion_to_valence_arousal(prob: np.ndarray, config: Dict) -> Tuple[float, float]:
+19|     """Maps emotion softmax probabilities to a continuous (valence, arousal) space using anchors from the config."""
+20|     if prob.ndim == 2:
+21|         prob = prob[0]
+22| 
+23|     # BEST PRACTICE: Load mapping from config, not hard-coded
+24|     mapping_config = config.get("affective_model", {}).get("emotion_mapping", {})
+25|     keys = mapping_config.get("class_order", [])
+26|     anchors = mapping_config.get("anchors", {})
+27| 
+28|     if len(prob) != len(keys):
+29|         raise ValueError(f"Model output size ({len(prob)}) does not match emotion classes in config ({len(keys)}).")
+30| 
+31|     val = sum(prob[i] * anchors.get(k, {}).get("valence", 0.0) for i, k in enumerate(keys))
+32|     aro = sum(prob[i] * anchors.get(k, {}).get("arousal", 0.0) for i, k in enumerate(keys))
+33| 
+34|     # Scale valence from [-1, 1] to [0, 10] for consistency
+35|     val_scaled = (val + 1.0) * 5.0
+36|     return float(val_scaled), float(aro)
+37| 
+38| # --- The Master Agent ---
+39| class ClosedLoopAgent:
+40|     """The master agent that orchestrates the full SENSE -> DECIDE -> ACT -> LEARN loop."""
+41|     def __init__(self, config: Dict):
+42|         # ... (init logic remains the same, it's already excellent)
+43|         self.config = config
+44|         self.is_running = False
+45|         foundational_model_path = os.path.join(config["output_model_dir"], "gcs_fold_1.h5")
+46|         affective_model_path = config.get("affective_model", {}).get("output_model_path")
+47|         self.inference_engine = GCSInference(foundational_model_path, config["graph_scaffold_path"])
         # Create a temporary config for GCSInference
         import tempfile
         import yaml
