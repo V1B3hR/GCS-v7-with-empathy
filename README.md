@@ -5,9 +5,9 @@ Grand Council Sentient (GCS)
 
 ![alt text](https://img.shields.io/badge/version-7.0-blue)
 An Empathetic, Co-Adaptive, and Therapeutic Brain-Computer Interface.
-The Vision
+
 The Grand Council Sentient (GCS) is more than just a Brain-Computer Interface. It is a research initiative and a functional prototype for a system designed to be a true partner to the human mind. Our core philosophy is that the mind is like a flower: fragile, flexible, and requiring a supportive environment to thrive.
-This project moves beyond simple command decoding. We are building a complete cognitive and affective interface that can sense intent, understand emotion, and is architected to safely and ethically act as a therapeutic agent. Our goal is to create a system that is not just powerful, but also good—a technology that embodies the principles of safety, privacy, and empathy.
+This project moves beyond simple command decoding. We are building a complete cognitive and affective interface that can sense intent, understand emotion, and is architected to safely and ethically act as a therapeutic agent. Our goal is to create a system that is not just powerful, but also embodies the principles of safety, privacy, and empathy.
   
   Core Features
 The GCS is a full-stack, modular system built on a foundation of cutting-edge research and a safety-first design.
