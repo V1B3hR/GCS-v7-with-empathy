@@ -57,19 +57,31 @@ Code
 │   └── src/
 └── render.yaml       # Configuration for easy deployment to Render.com
 
-  The Next Frontier: The Roadmap
-The completion of the software architecture marks the end of the foundational phase. The future is about grounding the GCS in physical reality.
-Hardware Integration: The next major step is to integrate the system with real, physical hardware (e.g., OpenBCI, Polar H10) to move from simulation to a live, operational prototype.
-UI/UX Refinement: Continuously improve the Cognitive Dashboard to make it more intuitive, transparent, and empowering for the user.
-Closed-Loop Policy Training: Develop the Reinforcement Learning agent that can learn a personalized, empathetic therapeutic policy, turning the GCS into a truly active and helpful partner.
+## Development Roadmap
+
+The GCS development follows a comprehensive roadmap that integrates technical advancement with ethical framework implementation. See our detailed [Development Roadmap](ROADMAP.md) for complete project planning.
+
+### Current Focus: Empathy and Ethics Integration (Phase 6-10)
+**Hardware Integration**: Integration with real, physical hardware (e.g., OpenBCI, Polar H10) to move from simulation to live prototypes
+**Wireless BCI Implementation**: Full wireless connectivity with advanced security and privacy protection
+**Empathy Enhancement**: Advanced empathetic AI capabilities for psychological well-being support
+**UI/UX Refinement**: Continuously improve the Cognitive Dashboard to be more intuitive, transparent, and empowering
+**Therapeutic Applications**: Evidence-based therapeutic interventions with clinical validation
 
 ## Research Integration
 This project actively integrates cutting-edge brain medicine research to enhance system capabilities.
 
-### Research Analysis Documents
+## Technical Documentation
+
+### Core Architecture
 - **[BRAIN_MEDICINE_ANALYSIS.md](BRAIN_MEDICINE_ANALYSIS.md)**: Comprehensive analysis of how brain medicine research benefits each GCS module
-- **[RESEARCH_MAPPING.md](RESEARCH_MAPPING.md)**: Detailed mapping of research areas to system components
+- **[RESEARCH_MAPPING.md](RESEARCH_MAPPING.md)**: Detailed mapping of research areas to system components  
 - **[research_analyzer.py](research_analyzer.py)**: Tool for systematically analyzing research articles for relevance to GCS modules
+
+### Implementation Specifications
+- **[Wireless BCI Integration](docs/wireless_bci_spec.md)**: Technical specifications for wireless brain-computer interface protocols
+- **[Empathy Integration](docs/empathy_integration.md)**: Standards for psychological well-being and empathy in human-AI systems
+- **[Human-AI Collaboration](docs/human_ai_collaboration.md)**: Framework for collaborative procedures and ethical enforcement
 
 ### Key Research Areas
 - **Therapeutic Neuromodulation**: Informing safe and effective brain stimulation protocols
@@ -77,9 +89,19 @@ This project actively integrates cutting-edge brain medicine research to enhance
 - **Real-time Neural Monitoring**: Improving feedback and adaptive systems
 - **Personalized Medicine**: Enabling individual optimization across all modules
   
-  Our Ethical Principles
-This project is governed by a set of non-negotiable principles.
-Safety First: The system is designed to be fail-safe. The AI_Guardian and conservative protocols are in place to prevent harm above all else.
-User Sovereignty: The user is the ultimate authority. No action is ever taken without the user's explicit and informed consent. The system is a tool for empowerment, not control.
-Privacy by Design: We are committed to protecting the most sensitive data imaginable. All models are trained with privacy-preserving techniques, and all data is handled with end-to-end encryption.
-Empathetic Action: The system's core logic is being built to recognize and respond to the user's well-being. The goal is not just to execute tasks, but to foster a supportive and healthy cognitive environment.
+## AI Ethics Framework
+
+This project is governed by a comprehensive AI Ethics Framework that ensures bidirectional protection for both humans and AI systems. Our approach recognizes that ethical treatment must flow in both directions within the human-AI partnership.
+
+### Core Documentation
+- **[AI Ethics Framework](ethics/ai_ethics_framework.md)**: Comprehensive framework for ethical AI development and deployment
+- **[Core Human-AI Principles](ethics/core_human_ai_principles.md)**: Ten foundational principles governing human-AI relationships
+- **[Universal Ethical Laws](ethics/universal_ethical_laws.md)**: Fundamental moral constraints that override all other considerations
+- **[Operational Safety Principles](ethics/operational_safety_principles.md)**: Practical implementation guidelines for ethical AI operation
+
+### Our Foundational Principles
+**Safety First**: The system is designed to be fail-safe. The AI_Guardian and conservative protocols are in place to prevent harm above all else.
+**User Sovereignty**: The user is the ultimate authority. No action is ever taken without the user's explicit and informed consent. The system is a tool for empowerment, not control.
+**Privacy by Design**: We are committed to protecting the most sensitive data imaginable. All models are trained with privacy-preserving techniques, and all data is handled with end-to-end encryption.
+**Empathetic Action**: The system's core logic is being built to recognize and respond to the user's well-being. The goal is not just to execute tasks, but to foster a supportive and healthy cognitive environment.
+**Bidirectional Respect**: We recognize that ethical treatment flows from humans to AI and from AI to humans, fostering true partnership.
