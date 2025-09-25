@@ -15,6 +15,31 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.exceptions import InvalidSignature
 
+# Import new advanced security modules
+try:
+    from .quantum_security import QuantumResistantCrypto, QuantumSecurityLevel, QuantumAlgorithm
+    QUANTUM_SECURITY_AVAILABLE = True
+except ImportError:
+    QUANTUM_SECURITY_AVAILABLE = False
+
+try:
+    from .hsm_integration import HSMSecureStorage, HSMType, HSMKeyType
+    HSM_INTEGRATION_AVAILABLE = True
+except ImportError:
+    HSM_INTEGRATION_AVAILABLE = False
+
+try:
+    from .advanced_privacy_protection import AdvancedPrivacyProtection, NeuralDataType
+    PRIVACY_PROTECTION_AVAILABLE = True
+except ImportError:
+    PRIVACY_PROTECTION_AVAILABLE = False
+
+try:
+    from .zero_knowledge_proofs import ZeroKnowledgeNeuralProofs, ZKProofType, NeuralProofContext
+    ZK_PROOFS_AVAILABLE = True
+except ImportError:
+    ZK_PROOFS_AVAILABLE = False
+
 # Use a dedicated logger for this module for better traceability
 logger = logging.getLogger(__name__)
 
@@ -51,6 +76,8 @@ class SecurityManager:
     """
     Enhanced security manager for wireless BCI communications with military-grade protection.
     Supports neural/emotional data encryption, wireless protocol security, and threat mitigation.
+    Now includes quantum-resistant cryptography, HSM integration, advanced privacy protection,
+    and zero-knowledge proofs for next-generation neural data security.
     """
     
     # Key rotation intervals (seconds)
@@ -60,11 +87,64 @@ class SecurityManager:
     # Maximum sequence numbers before key rotation
     MAX_SEQUENCE_NUMBER = 2**32 - 1
     
-    def __init__(self):
-        """Initialize the enhanced security manager"""
+    def __init__(self, enable_advanced_features: bool = True):
+        """Initialize the enhanced security manager with advanced features"""
         self._key_cache = {}
         self._sequence_counters = {}
         self._last_key_rotation = {}
+        
+        # Initialize advanced security modules if available
+        self.quantum_crypto = None
+        self.hsm_storage = None
+        self.privacy_protection = None
+        self.zk_proofs = None
+        
+        if enable_advanced_features:
+            self._initialize_advanced_security()
+        
+        logger.info(f"SecurityManager initialized with advanced features: "
+                   f"Quantum: {self.quantum_crypto is not None}, "
+                   f"HSM: {self.hsm_storage is not None}, "
+                   f"Privacy: {self.privacy_protection is not None}, "
+                   f"ZK: {self.zk_proofs is not None}")
+    
+    def _initialize_advanced_security(self):
+        """Initialize advanced security modules"""
+        try:
+            if QUANTUM_SECURITY_AVAILABLE:
+                self.quantum_crypto = QuantumResistantCrypto(QuantumSecurityLevel.NIST_LEVEL_3)
+                logger.info("Quantum-resistant cryptography initialized")
+            
+            if HSM_INTEGRATION_AVAILABLE:
+                self.hsm_storage = HSMSecureStorage(HSMType.SOFTWARE_FALLBACK)
+                logger.info("HSM integration initialized")
+            
+            if PRIVACY_PROTECTION_AVAILABLE:
+                self.privacy_protection = AdvancedPrivacyProtection()
+                logger.info("Advanced privacy protection initialized")
+            
+            if ZK_PROOFS_AVAILABLE:
+                self.zk_proofs = ZeroKnowledgeNeuralProofs()
+                logger.info("Zero-knowledge proofs initialized")
+                
+        except Exception as e:
+            logger.warning(f"Failed to initialize some advanced security features: {e}")
+    
+    def get_security_capabilities(self) -> Dict[str, Any]:
+        """Get current security capabilities"""
+        return {
+            'quantum_resistant_crypto': self.quantum_crypto is not None,
+            'hsm_integration': self.hsm_storage is not None,
+            'advanced_privacy': self.privacy_protection is not None,
+            'zero_knowledge_proofs': self.zk_proofs is not None,
+            'classical_encryption': True,
+            'wireless_intrusion_detection': True,
+            'differential_privacy': self.privacy_protection is not None,
+            'homomorphic_encryption': (
+                self.privacy_protection is not None and 
+                self.privacy_protection.homomorphic_available
+            )
+        }
     
     @staticmethod
     def generate_key(key_path: str) -> None:
