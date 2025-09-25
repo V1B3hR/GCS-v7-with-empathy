@@ -15,6 +15,51 @@ affective_model:
       JOY:        { valence:  0.8, arousal: 6.0 }
       ANGER:      { valence: -0.6, arousal: 9.0 }
 
+# PHASE 7: Empathy Module Configuration
+empathy:
+  enabled: true
+  # Empathy Response Generation
+  response_generation:
+    confidence_threshold: 0.75  # Minimum confidence for empathy responses
+    cultural_adaptation_enabled: true
+    personalization_enabled: true
+    therapeutic_alignment_required: true
+  
+  # Privacy and Security
+  privacy:
+    encryption_enabled: true
+    access_logging: true
+    data_retention_days: 90  # Emotional data retention period
+    anonymization_threshold_days: 30  # When to anonymize data
+  
+  # Ethical Guidelines
+  ethics:
+    crisis_detection_enabled: true
+    professional_referral_mandatory: true
+    manipulation_prevention: true
+    autonomy_preservation: true
+    informed_consent_required: true
+  
+  # Effectiveness Measurement
+  measurement:
+    user_feedback_collection: true
+    emotional_improvement_tracking: true
+    longitudinal_analysis_enabled: true
+    effectiveness_reporting_interval_days: 7
+  
+  # Cultural Sensitivity
+  cultural_adaptation:
+    default_context: "individualistic"
+    adaptation_models_enabled: true
+    cross_cultural_validation: true
+  
+  # Therapeutic Integration
+  therapeutic:
+    evidence_based_interventions: true
+    therapeutic_goal_tracking: true
+    professional_collaboration_enabled: true
+    intervention_safety_protocols: true
+
 # Real data paths configuration
 real_data_paths:
   eeg_data_dir: "data/real_eeg"  # Directory containing real EEG data files (.npz, .npy)
