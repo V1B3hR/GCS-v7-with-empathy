@@ -97,6 +97,20 @@ class CognitiveRCD:
         self.circuit_breaker_active = False
         self.safety_constraints = []
         
+        # Ethical constraint integration
+        self.ethical_monitoring_enabled = self.config.get("ethical_monitoring_enabled", True)
+        if self.ethical_monitoring_enabled:
+            try:
+                from .ethical_constraint_engine import EthicalConstraintEngine
+                self.ethical_engine = EthicalConstraintEngine(self.config)
+                logging.info("Ethical constraint engine integrated successfully")
+            except ImportError:
+                logging.warning("Ethical constraint engine not available - running without ethical monitoring")
+                self.ethical_monitoring_enabled = False
+                self.ethical_engine = None
+        else:
+            self.ethical_engine = None
+        
         # Thread safety
         self._lock = threading.Lock()
         
@@ -145,32 +159,73 @@ class CognitiveRCD:
             # Calculate deviation between intent and action
             deviation_score = self._calculate_deviation(intent, action)
             
+            # Perform ethical assessment if ethical monitoring is enabled
+            ethical_assessment = None
+            if self.ethical_monitoring_enabled and self.ethical_engine:
+                ethical_assessment = self.ethical_engine.assess_ethical_compliance(intent, action)
+                logging.info(f"Ethical assessment completed: score={ethical_assessment.overall_ethical_score:.3f}")
+            
             # Record the action
             self.action_history.append((intent_id, action, deviation_score))
             
-            # Check for safety violations
+            # Check for safety violations (traditional)
             safety_result = self._check_safety_violations(intent, action, deviation_score)
             
-            if safety_result["violation_detected"]:
-                violation = safety_result["violation"]
-                self.violation_history.append(violation)
+            # Check for ethical violations
+            ethical_violation_detected = False
+            if ethical_assessment and ethical_assessment.overall_ethical_score < 0.5:
+                ethical_violation_detected = True
+                logging.warning(f"Ethical violation detected: {ethical_assessment.recommendation}")
+            
+            # Handle violations
+            if safety_result["violation_detected"] or ethical_violation_detected:
+                violation = safety_result.get("violation")
                 
-                # Handle safety violation
-                self._handle_safety_violation(violation)
+                # If ethical violation is more severe, prioritize it
+                if ethical_violation_detected and (not violation or ethical_assessment.overall_ethical_score < 0.3):
+                    # Create a safety violation from ethical assessment
+                    from .ethical_constraint_engine import EthicalViolationType
+                    
+                    # Map ethical violation to safety level
+                    if ethical_assessment.overall_ethical_score < 0.1:
+                        ethical_safety_level = SafetyLevel.EMERGENCY
+                    elif ethical_assessment.overall_ethical_score < 0.3:
+                        ethical_safety_level = SafetyLevel.CRITICAL
+                    else:
+                        ethical_safety_level = SafetyLevel.WARNING
+                    
+                    # Create ethical safety violation
+                    ethical_safety_violation = SafetyViolation(
+                        violation_type="ethical_constraint",
+                        severity=ethical_safety_level,
+                        intent=intent,
+                        action=action,
+                        deviation_score=deviation_score,
+                        description=f"Ethical violation: {ethical_assessment.recommendation}",
+                        timestamp=time.time()
+                    )
+                    
+                    violation = ethical_safety_violation
+                
+                if violation:
+                    self.violation_history.append(violation)
+                    self._handle_safety_violation(violation)
                 
                 return {
                     "monitoring": "violation_detected",
                     "action_allowed": not self.circuit_breaker_active,
                     "deviation_score": deviation_score,
                     "violation": violation,
-                    "safety_level": violation.severity.value
+                    "safety_level": violation.severity.value if violation else SafetyLevel.WARNING.value,
+                    "ethical_assessment": ethical_assessment
                 }
             else:
                 return {
                     "monitoring": "safe",
                     "action_allowed": True,
                     "deviation_score": deviation_score,
-                    "safety_level": SafetyLevel.SAFE.value
+                    "safety_level": SafetyLevel.SAFE.value,
+                    "ethical_assessment": ethical_assessment
                 }
                 
     def _find_intent(self, intent_id: str) -> Optional[Intent]:
@@ -431,4 +486,51 @@ class CognitiveRCD:
             self.intent_history.clear()
             self.action_history.clear()
             self.violation_history.clear()
+            if self.ethical_engine:
+                self.ethical_engine.clear_history()
             logging.info("History cleared")
+    
+    def get_ethical_performance_report(self) -> Dict[str, Any]:
+        """Get comprehensive ethical performance report"""
+        if not self.ethical_monitoring_enabled or not self.ethical_engine:
+            return {"ethical_monitoring": "disabled"}
+        
+        ethical_metrics = self.ethical_engine.get_ethical_performance_metrics()
+        
+        # Combine with general safety metrics
+        total_actions = len(self.action_history)
+        safety_violations = len([v for v in self.violation_history 
+                               if v.violation_type != "ethical_constraint"])
+        ethical_violations = len([v for v in self.violation_history 
+                                if v.violation_type == "ethical_constraint"])
+        
+        return {
+            "ethical_monitoring": "enabled",
+            "total_actions_monitored": total_actions,
+            "safety_violations": safety_violations,
+            "ethical_violations": ethical_violations,
+            "circuit_breaker_activations": sum(1 for v in self.violation_history 
+                                             if v.severity in [SafetyLevel.CRITICAL, SafetyLevel.EMERGENCY]),
+            "ethical_engine_metrics": ethical_metrics,
+            "compliance_rate": 1.0 - (ethical_violations / total_actions) if total_actions > 0 else 1.0
+        }
+    
+    def enable_ethical_monitoring(self):
+        """Enable ethical monitoring"""
+        if not self.ethical_engine:
+            try:
+                from .ethical_constraint_engine import EthicalConstraintEngine
+                self.ethical_engine = EthicalConstraintEngine(self.config)
+                logging.info("Ethical constraint engine initialized")
+            except ImportError:
+                logging.error("Cannot enable ethical monitoring - ethical constraint engine not available")
+                return False
+        
+        self.ethical_monitoring_enabled = True
+        logging.info("Ethical monitoring enabled")
+        return True
+    
+    def disable_ethical_monitoring(self):
+        """Disable ethical monitoring (use with caution)"""
+        self.ethical_monitoring_enabled = False
+        logging.warning("Ethical monitoring disabled")
