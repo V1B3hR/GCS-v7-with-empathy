@@ -12,24 +12,24 @@ Use it to:
 
 ## 1. Project Overview
 - Project Name: GCS-v7-with-empathy
-- Repository: (update if forked or mirrored) `V1B3hR/GCS-v7-with-empathy`
-- Current Model / Component Under Debug: <!-- e.g., empathy scoring classifier, generation module -->
+- Repository: `V1B3hR/GCS-v7-with-empathy`
+- Current Model / Component Under Debug: Multi-modal Affective State Classifier (empathy-enhanced emotion recognition)
 - Stakeholders / Owners:  
-  - Tech Lead:  
-  - ML Engineer(s):  
-  - Reviewer(s):  
-  - Domain Expert(s):  
-- External Dependencies / APIs:  
-- Target Deployment Environment: <!-- e.g., batch inference, real-time API -->
+  - Tech Lead: @V1B3hR  
+  - ML Engineer(s): GCS Development Team  
+  - Reviewer(s): Community contributors  
+  - Domain Expert(s): BCI and affective computing researchers  
+- External Dependencies / APIs: TensorFlow/Keras, Spektral (Graph Neural Networks), DEAP Dataset
+- Target Deployment Environment: Real-time WebSocket API with FastAPI backend, cloud-based (Codespaces/Render)
 
 ---
 
 ## 2. Problem Statement
 Describe what is “wrong” or insufficient with the current model.
-- Symptoms: <!-- e.g., reduced F1 on minority class, drift since 2025-09-01 -->
-- When first observed:  
-- Impact Severity (High | Medium | Low):  
-- Affected Use Cases / Users:  
+- Symptoms: Multi-modal affective state classifier requires validation on real EEG data; model fusion architecture needs performance benchmarking; LOSO cross-validation results pending documentation
+- When first observed: 2025-09-30 (Initial deployment phase)
+- Impact Severity (High | Medium | Low): Medium - System functional but requires empirical validation
+- Affected Use Cases / Users: Real-time emotion detection for therapeutic BCI applications; empathetic response generation accuracy depends on classifier performance  
 
 ---
 
@@ -50,14 +50,14 @@ Describe what is “wrong” or insufficient with the current model.
 ## 4. Data Summary
 | Dataset Split | Size (rows) | Date Range | Class Dist Summary | Notes |
 |---------------|-------------|------------|--------------------|-------|
-| Train |  |  |  |  |
-| Validation |  |  |  |  |
-| Test (Holdout, Untouched) |  |  |  |  |
-| Shadow / Live Stream Sample |  |  |  |  |
+| Train | Variable (LOSO) | N/A | DEAP dataset baseline | EEG channels: 64, Timesteps: 250 |
+| Validation | Variable (LOSO) | N/A | Held-out subject per fold | Leave-One-Subject-Out CV |
+| Test (Holdout, Untouched) | Pending | N/A | To be collected | Real-world therapeutic scenarios |
+| Shadow / Live Stream Sample | Real-time | Current | User sessions | WebSocket streaming data |
 
-- Feature Catalog: document in `docs/feature_catalog.md` (if not existing create it).
-- Sensitive / Proxy Features: <!-- list -->
-- Known Data Risks: <!-- label noise, imbalance -->
+- Feature Catalog: Multi-modal features including EEG (64 channels × 250 timesteps), Physiological signals (2 features: HRV, GSR), Voice prosody (128 features)
+- Sensitive / Proxy Features: All emotional data encrypted; privacy-preserving protocols active; 90-day retention policy
+- Known Data Risks: Label quality dependent on DEAP annotations; potential distribution shift between lab and therapeutic settings; class imbalance in emotional states
 
 ---
 
@@ -176,17 +176,18 @@ Append each experiment as a block (or store externally, link here).
 ```yaml
 - run_id: EXP_2025_09_30_001
   date: 2025-09-30
-  git_commit: <hash>
-  data_manifest_hash: <hash>
-  config_file: configs/model_v1.yaml
-  changes: "Added class weights; LR=3e-4"
+  git_commit: e5c281dc12522478efb63334a510bda6fb8d2c79
+  data_manifest_hash: pending_real_data_collection
+  config_file: config.yaml
+  changes: "Initial multi-modal affective classifier deployment with transfer learning from GCS foundational model"
   metrics:
-    val_f1_macro: 0.652
-    val_recall_minority: 0.438
-    val_auroc: 0.842
-  comparison_to_prev: "+2.3% F1_macro"
-  interpretation_notes: "Minority recall improved modestly"
-  next_action: "Broaden learning rate sweep"
+    architecture: "GNN (frozen) + Physio branch (64 units) + Voice branch (64 units) + Fusion (128 units)"
+    dropout_rate: 0.3
+    emotion_classes: ["ANXIETY", "DEPRESSION", "JOY", "ANGER"]
+    output_format: "valence-arousal regression"
+  comparison_to_prev: "Baseline - first deployment"
+  interpretation_notes: "Transfer learning approach implemented; GCS foundational model frozen for EEG feature extraction; ready for LOSO cross-validation on real data"
+  next_action: "Run LOSO cross-validation with real EEG data; benchmark fusion architecture performance; validate empathy response generation"
 ```
 
 ---
@@ -294,7 +295,8 @@ logging:
 ## 15. Change Log (Maintain Chronologically)
 | Date | Change | Author | Notes |
 |------|--------|--------|-------|
-| 2025-09-30 | Initial charter draft | <your name> | Created structure |
+| 2025-09-30 | Initial charter draft | @V1B3hR | Created structure |
+| 2025-09-30 | Updated after initial deployment | GCS Development Team | Populated with actual project details, affective classifier debugging scope |
 
 (Extend as modifications are made.)
 
