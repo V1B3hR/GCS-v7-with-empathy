@@ -130,7 +130,7 @@ Below is the authoritative phase plan. Each phase MUST produce explicit artifact
 - [ ] Decision on final CV strategy documented
 - [ ] (If tuning) Plan for nested CV or proper holdout
 
-### Phase 6: Architecture & Hyperparams
+### Phase 6: Architecture & Hyperparams DONE!!!
 - [x] Search space YAML defined
 - [x] Random search > N trials complete
 - [x] Bayesian refinement (optional)
@@ -299,6 +299,7 @@ logging:
 | 2025-09-30 | Updated after initial deployment | GCS Development Team | Populated with actual project details, affective classifier debugging scope |
 | 2025-09-30 | Confirmed metrics and hypotheses after run | GCS Development Team | Validated Objectives & Success Criteria (Section 3), Data Summary (Section 4), and Hypothesis Backlog (Section 5) |
 | 2025-10-01 | Phase 1-3 marked as completed | GCS Development Team | Completed Problem Framing, Data Integrity, and Reproducibility phases; now focusing on Phase 4 (Baselines & Sanity) and Phase 5 (Cross-Validation) |
+| 2025-10-01 | Phase 6 marked as completed | GCS Development Team | Architecture & Hyperparams phase completed after run - search space YAML defined, random search trials complete, Bayesian refinement performed, ablation matrix built, overfit vs. underfit diagnosed, and best config locked & serialized |
 
 (Extend as modifications are made.)
 
