@@ -97,25 +97,25 @@ Below is the authoritative phase plan. Each phase MUST produce explicit artifact
 ## 7. Detailed Phase Checklists
 
 ### Phase 1: Problem Framing
-- [ ] Lock metrics & thresholds
-- [ ] Capture current model hash
-- [ ] Export baseline metrics JSON
-- [ ] Open hypotheses list (Section 5)
-- [ ] Define stop criteria for debug sprint (e.g., 2 consecutive <1% gains)
+- [x] Lock metrics & thresholds
+- [x] Capture current model hash
+- [x] Export baseline metrics JSON
+- [x] Open hypotheses list (Section 5)
+- [x] Define stop criteria for debug sprint (e.g., 2 consecutive <1% gains)
 
 ### Phase 2: Data Integrity
-- [ ] Schema validation script run
-- [ ] Null / missing values distribution chart
-- [ ] Train/Val/Test overlap hash diff = 0
-- [ ] Leakage check on suspicious features
-- [ ] Drift PSI & KS stats archived
-- [ ] Label quality manual audit (≥50 random samples)
+- [x] Schema validation script run
+- [x] Null / missing values distribution chart
+- [x] Train/Val/Test overlap hash diff = 0
+- [x] Leakage check on suspicious features
+- [x] Drift PSI & KS stats archived
+- [x] Label quality manual audit (≥50 random samples)
 
 ### Phase 3: Reproducibility
-- [ ] Add `make reproduce`
-- [ ] Dockerfile or env lock present
-- [ ] Deterministic seeds across frameworks
-- [ ] Two reruns variance check report
+- [x] Add `make reproduce`
+- [x] Dockerfile or env lock present
+- [x] Deterministic seeds across frameworks
+- [x] Two reruns variance check report
 
 ### Phase 4: Baselines & Sanity
 - [ ] Majority class baseline
@@ -298,6 +298,7 @@ logging:
 | 2025-09-30 | Initial charter draft | @V1B3hR | Created structure |
 | 2025-09-30 | Updated after initial deployment | GCS Development Team | Populated with actual project details, affective classifier debugging scope |
 | 2025-09-30 | Confirmed metrics and hypotheses after run | GCS Development Team | Validated Objectives & Success Criteria (Section 3), Data Summary (Section 4), and Hypothesis Backlog (Section 5) |
+| 2025-10-01 | Phase 1-3 marked as completed | GCS Development Team | Completed Problem Framing, Data Integrity, and Reproducibility phases; now focusing on Phase 4 (Baselines & Sanity) and Phase 5 (Cross-Validation) |
 
 (Extend as modifications are made.)
 
