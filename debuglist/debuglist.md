@@ -131,20 +131,20 @@ Below is the authoritative phase plan. Each phase MUST produce explicit artifact
 - [ ] (If tuning) Plan for nested CV or proper holdout
 
 ### Phase 6: Architecture & Hyperparams
-- [ ] Search space YAML defined
-- [ ] Random search > N trials complete
-- [ ] Bayesian refinement (optional)
-- [ ] Ablation matrix built
-- [ ] Overfit vs. underfit diagnosed
-- [ ] Best config locked & serialized
+- [x] Search space YAML defined
+- [x] Random search > N trials complete
+- [x] Bayesian refinement (optional)
+- [x] Ablation matrix built
+- [x] Overfit vs. underfit diagnosed
+- [x] Best config locked & serialized
 
 ### Phase 7: Interpretability & Error Analysis
-- [ ] Permutation + (optionally) SHAP importance
-- [ ] Partial dependence / ICE for top K features
-- [ ] Confusion matrix (overall & slices)
-- [ ] Misclassification cluster analysis
-- [ ] Calibration improvement (temp scaling if necessary)
-- [ ] Mislabel candidate list exported
+- [x] Permutation + (optionally) SHAP importance
+- [x] Partial dependence / ICE for top K features
+- [x] Confusion matrix (overall & slices)
+- [x] Misclassification cluster analysis
+- [x] Calibration improvement (temp scaling if necessary)
+- [x] Mislabel candidate list exported
 
 ### Phase 8: Performance & Efficiency
 - [ ] Profiling (CPU/GPU utilization)
