@@ -147,21 +147,21 @@ Below is the authoritative phase plan. Each phase MUST produce explicit artifact
 - [x] Mislabel candidate list exported
 
 ### Phase 8: Performance & Efficiency
-- [ ] Profiling (CPU/GPU utilization)
+- [x] Profiling (CPU/GPU utilization)
 - [ ] DataLoader throughput benchmark
-- [ ] Latency P50/P95/P99 before & after optimizations
+- [x] Latency P50/P95/P99 before & after optimizations
 - [ ] Compression (if applied) delta table
-- [ ] Memory peak usage log
+- [x] Memory peak usage log
 
 ### Phase 9: Reliability, Fairness & Safety
-- [ ] Fairness metrics across defined subgroups
-- [ ] Robustness tests (noise/perturbation)
+- [x] Fairness metrics across defined subgroups
+- [x] Robustness tests (noise/perturbation)
 - [ ] OOD detection threshold tuned
-- [ ] Bias risk analysis doc
-- [ ] Safety guardrails checklist passed
+- [x] Bias risk analysis doc
+- [x] Safety guardrails checklist passed
 
 ### Phase 10: Integration & Monitoring
-- [ ] Regression unit tests (preprocessing, shapes, determinism)
+- [x] Regression unit tests (preprocessing, shapes, determinism)
 - [ ] CI pipeline operational
 - [ ] Model registry entry (version, hashes)
 - [ ] Shadow/canary evaluation logs
