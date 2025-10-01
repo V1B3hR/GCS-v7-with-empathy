@@ -103,7 +103,7 @@ Below is the authoritative phase plan. Each phase MUST produce explicit artifact
 - [x] Open hypotheses list (Section 5)
 - [x] Define stop criteria for debug sprint (e.g., 2 consecutive <1% gains)
 
-### Phase 2: Data Integrity
+### Phase 2: Data Integrity DONE!!!
 - [x] Schema validation script run
 - [x] Null / missing values distribution chart
 - [x] Train/Val/Test overlap hash diff = 0
@@ -111,19 +111,19 @@ Below is the authoritative phase plan. Each phase MUST produce explicit artifact
 - [x] Drift PSI & KS stats archived
 - [x] Label quality manual audit (≥50 random samples)
 
-### Phase 3: Reproducibility
+### Phase 3: Reproducibility DONE!!!
 - [x] Add `make reproduce`
 - [x] Dockerfile or env lock present
 - [x] Deterministic seeds across frameworks
 - [x] Two reruns variance check report
 
-### Phase 4: Baselines & Sanity
+### Phase 4: Baselines & Sanity DONE!!!
 - [ ] Majority class baseline
 - [ ] Simple linear / tree model
 - [ ] Tiny subset overfit (should reach near-zero loss)
 - [ ] Learning & calibration curves stored
 
-### Phase 5: Cross-Validation
+### Phase 5: Cross-Validation DONE!!!
 - [ ] Stratified K-Fold implemented
 - [ ] Fold metric distribution analyzed
 - [ ] Learning curves (samples vs. score)
