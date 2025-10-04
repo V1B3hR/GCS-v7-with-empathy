@@ -16,8 +16,8 @@ from typing import Dict, List, Tuple, Any, Optional, Set
 from dataclasses import dataclass, field
 from enum import Enum
 from collections import deque, defaultdict
-from .CognitiveRCD import SafetyLevel
-from .human_ai_collaboration import AnomalyType, CollaborationContext, CollaborationAnomaly
+from .types import SafetyLevel, AnomalyType, CollaborationContext
+from .human_ai_collaboration import CollaborationAnomaly
 
 
 class AnomalyDetectionModel(Enum):

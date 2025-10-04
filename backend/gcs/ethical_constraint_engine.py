@@ -13,7 +13,7 @@ import time
 from typing import Dict, List, Tuple, Any, Optional, Set
 from dataclasses import dataclass
 from enum import Enum
-from .CognitiveRCD import Intent, Action, ActionType, SafetyLevel
+from .types import Intent, Action, ActionType, SafetyLevel
 
 
 class EthicalViolationType(Enum):

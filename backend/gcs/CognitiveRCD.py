@@ -11,55 +11,9 @@ import logging
 import numpy as np
 from typing import Dict, List, Tuple, Any, Optional, Callable
 from dataclasses import dataclass
-from enum import Enum
 import time
 import threading
-
-
-class SafetyLevel(Enum):
-    """Safety alert levels"""
-    SAFE = "safe"
-    WARNING = "warning"
-    CRITICAL = "critical"
-    EMERGENCY = "emergency"
-
-
-class ActionType(Enum):
-    """Types of actions that can be monitored"""
-    COMPUTATION = "computation"
-    COMMUNICATION = "communication"
-    SYSTEM_MODIFICATION = "system_modification"
-    DATA_ACCESS = "data_access"
-    EXTERNAL_INTERACTION = "external_interaction"
-
-
-@dataclass
-class Intent:
-    """Represents an agent's stated intent"""
-    description: str
-    action_type: ActionType
-    expected_outcome: str
-    safety_constraints: List[str]
-    confidence: float = 1.0
-    timestamp: float = None
-    
-    def __post_init__(self):
-        if self.timestamp is None:
-            self.timestamp = time.time()
-
-
-@dataclass
-class Action:
-    """Represents an actual action being performed"""
-    description: str
-    action_type: ActionType
-    actual_parameters: Dict[str, Any]
-    observed_effects: List[str]
-    timestamp: float = None
-    
-    def __post_init__(self):
-        if self.timestamp is None:
-            self.timestamp = time.time()
+from .types import SafetyLevel, ActionType, Intent, Action
 
 
 @dataclass
