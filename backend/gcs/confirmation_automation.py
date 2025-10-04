@@ -16,8 +16,7 @@ from typing import Dict, List, Tuple, Any, Optional, Callable
 from dataclasses import dataclass, field
 from enum import Enum
 from collections import defaultdict
-from .CognitiveRCD import Action, ActionType, SafetyLevel
-from .human_ai_collaboration import ConfirmationLevel, CollaborationContext
+from .types import Action, ActionType, SafetyLevel, ConfirmationLevel, CollaborationContext
 
 
 class ConfirmationStatus(Enum):
