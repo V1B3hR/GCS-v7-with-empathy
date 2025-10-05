@@ -173,7 +173,7 @@ def configure_logging():
 if __name__ == "__main__":
     """
     Direct execution entry point for training.
-    Allows running training directly with: python -m gcs.training [mode]
+    Allows running training directly with: python -m backend.gcs.training [mode]
     """
     configure_logging()
     
