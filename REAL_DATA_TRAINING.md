@@ -82,18 +82,41 @@ affective_model:
 ### Training with Real Data
 
 1. **Prepare your data** in the required format and place in the configured directories
-2. **Run LOSO cross-validation:**
+
+2. **Run training directly** (NEW - as of this update):
+   ```bash
+   # Run foundational model training (LOSO cross-validation)
+   python -m backend.gcs.training foundational --config config.yaml
+   
+   # Run affective model training
+   python -m backend.gcs.training affective --config config.yaml
+   
+   # Run both training modes sequentially
+   python -m backend.gcs.training both --config config.yaml
+   
+   # Get help on available options
+   python -m backend.gcs.training --help
+   ```
+
+3. **Run via main.py** (original method):
+   ```bash
+   cd backend
+   python main.py train-foundational --config ../config.yaml
+   python main.py train-affective --config ../config.yaml
+   ```
+
+4. **Run programmatically in Python:**
    ```python
    from gcs.training import Trainer
    from gcs.config_loader import load_config
    
    config = load_config('config.yaml')
    trainer = Trainer(config)
+   
+   # Run LOSO cross-validation
    trainer.run_loso_cross_validation()
-   ```
-
-3. **Train affective model:**
-   ```python
+   
+   # Train affective model
    trainer.train_affective_model()
    ```
 

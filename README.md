@@ -82,6 +82,32 @@ This project actively integrates cutting-edge brain medicine research to enhance
 - **[Wireless BCI Integration](docs/wireless_bci_spec.md)**: Technical specifications for wireless brain-computer interface protocols
 - **[Empathy Integration](docs/empathy_integration.md)**: Standards for psychological well-being and empathy in human-AI systems
 - **[Human-AI Collaboration](docs/human_ai_collaboration.md)**: Framework for collaborative procedures and ethical enforcement
+- **[Real Data Training](REAL_DATA_TRAINING.md)**: Guide for training models with real EEG and affective data
+
+### Model Training
+
+The GCS system supports training both foundational (LOSO cross-validation) and affective (multi-modal emotion recognition) models. You can run training in multiple ways:
+
+**Direct module execution:**
+```bash
+# Run foundational model training
+python -m backend.gcs.training foundational --config config.yaml
+
+# Run affective model training
+python -m backend.gcs.training affective --config config.yaml
+
+# Run both training modes sequentially
+python -m backend.gcs.training both --config config.yaml
+```
+
+**Via main.py:**
+```bash
+cd backend
+python main.py train-foundational --config ../config.yaml
+python main.py train-affective --config ../config.yaml
+```
+
+For detailed information about data formats, configuration, and training procedures, see [REAL_DATA_TRAINING.md](REAL_DATA_TRAINING.md).
 
 ### Key Research Areas
 - **Therapeutic Neuromodulation**: Informing safe and effective brain stimulation protocols
