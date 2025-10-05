@@ -1,4 +1,6 @@
 import os
+import sys
+import argparse
 import numpy as np
 import logging
 try:
@@ -157,3 +159,87 @@ class Trainer:
                 logging.error(f"Failed to save affective model: {e}", exc_info=True)
         except Exception as e:
             logging.error(f"Affective model training failed: {e}", exc_info=True)
+
+
+def configure_logging():
+    """Sets up a clean, standardized logging format."""
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    )
+
+
+if __name__ == "__main__":
+    """
+    Direct execution entry point for training.
+    Allows running training directly with: python -m gcs.training [mode]
+    """
+    configure_logging()
+    
+    parser = argparse.ArgumentParser(
+        description="GCS Training Module - Train foundational or affective models",
+        formatter_class=argparse.RawTextHelpFormatter
+    )
+    parser.add_argument(
+        'mode',
+        choices=['foundational', 'affective', 'both'],
+        help="""Training mode:
+  - foundational: Run LOSO cross-validation to train core GNN models
+  - affective:    Train the multi-modal classifier for empathetic understanding
+  - both:         Run both foundational and affective training sequentially"""
+    )
+    parser.add_argument(
+        '--config',
+        type=str,
+        default=os.path.join(os.path.dirname(__file__), '..', '..', 'config.yaml'),
+        help='Path to config file. Default: ../../config.yaml'
+    )
+    
+    args = parser.parse_args()
+    
+    # Load configuration
+    config_path = args.config
+    if not os.path.exists(config_path):
+        logging.error(f"Config file '{config_path}' not found. Exiting.")
+        sys.exit(1)
+    
+    try:
+        # Import config_loader here to avoid circular imports
+        from .config_loader import load_config
+        config = load_config(config_path)
+    except Exception as e:
+        logging.error(f"Failed to load configuration from {config_path}: {e}", exc_info=True)
+        sys.exit(1)
+    
+    # Initialize trainer
+    try:
+        trainer = Trainer(config)
+    except Exception as e:
+        logging.error(f"Failed to initialize Trainer: {e}", exc_info=True)
+        sys.exit(1)
+    
+    # Execute training based on mode
+    try:
+        if args.mode == 'foundational':
+            logging.info("=== Starting Foundational Model Training ===")
+            trainer.run_loso_cross_validation()
+            logging.info("=== Foundational model training complete ===")
+        elif args.mode == 'affective':
+            logging.info("=== Starting Affective Model Training ===")
+            trainer.train_affective_model()
+            logging.info("=== Affective model training complete ===")
+        elif args.mode == 'both':
+            logging.info("=== Starting Complete Training Pipeline ===")
+            logging.info("Step 1/2: Foundational Model Training")
+            trainer.run_loso_cross_validation()
+            logging.info("Step 2/2: Affective Model Training")
+            trainer.train_affective_model()
+            logging.info("=== Complete training pipeline finished ===")
+    except Exception as e:
+        logging.error(f"Training failed: {e}", exc_info=True)
+        sys.exit(1)
+    
+    logging.info("Training completed successfully.")
+    sys.exit(0)
+
