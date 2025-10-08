@@ -14,7 +14,7 @@ def create_test_deap(path):
 
 if __name__ == "__main__":
     import os
-    os.makedirs("backend/tests", exist_ok=True)
-    create_test_graph("backend/tests/test_graph.npz")
-    create_test_deap("backend/tests/test_deap.npz")
-    print("Dummy test data created in backend/tests/")
+    os.makedirs("tests", exist_ok=True)
+    create_test_graph("tests/test_graph.npz")
+    create_test_deap("tests/test_deap.npz")
+    print("Dummy test data created in tests/")
