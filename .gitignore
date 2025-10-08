@@ -31,6 +31,7 @@ data/real_eeg/
 # Test and temporary files
 test_*.py
 create_sample_real_data.py
+# Note: test fixture data files (tests/*.npz) are tracked for testing
 
 # Logs
 *.log
