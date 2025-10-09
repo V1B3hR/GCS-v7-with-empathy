@@ -74,20 +74,25 @@ Duration: Est. 24–28 weeks
 Entry Criteria:
 - Stable low-latency wireless stack (Phase 11 performance baselines locked)
 - Ethical consent & revocation protocol v2 approved
+
 Technical Objectives:
 - Define secure neural intent abstraction layer (NIAL)
 - Prototype encrypted intent relay (EIR) with <50ms added latency
 - Implement identity & session attestation for multi-user link
+
 Ethical Objectives:
 - Dynamic consent model (granular channel-level permissions)
 - Psychological impact assessment protocol design
+
 Deliverables:
 - Whitepaper v1
 - Prototype module (lab sandbox only)
 - Risk & misuse threat model (v1)
+
 Exit Criteria:
 - Latency <150ms round-trip aggregated
 - Zero unauthorized relay events in controlled adversarial tests
+
 Key Risks:
 - Cross-contamination of unintended affective signals
 - Identity spoofing (see Risk Register)
