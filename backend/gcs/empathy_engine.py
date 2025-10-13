@@ -18,7 +18,7 @@ import hashlib
 from datetime import datetime
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any, Tuple
-from enum import Enum
+from enum import Enum,
 
 import numpy as np
 import tensorflow as tf  # retained for compatibility with existing base classifier
@@ -32,9 +32,31 @@ except Exception:  # pragma: no cover
     _TRANSFORMERS_AVAILABLE = False
 
 
-class EmotionalState(Enum):
-    """Extended emotional states for empathy-aware classification"""
+class EmotionalState(str, Enum):
+    """Extended emotional states for empathy-aware classification."""
+
+    # Positive emotions
     JOY = "joy"
+    HAPPINESS = "happiness"
+    GRATITUDE = "gratitude"
+    LOVE = "love"
+    HOPE = "hope"
+    PRIDE = "pride"
+    AMUSEMENT = "amusement"
+    INTEREST = "interest"
+    INSPIRATION = "inspiration"
+    OPTIMISM = "optimism"
+    TRUST = "trust"
+    PEACEFULNESS = "peacefulness"
+    CONFIDENCE = "confidence"
+    SATISFACTION = "satisfaction"
+    AFFECTION = "affection"
+    ADMIRATION = "admiration"
+    CONTENTMENT = "contentment"
+    EXCITEMENT = "excitement"
+    RELIEF = "relief"
+
+    # Negative and neutral emotions (optional)
     SADNESS = "sadness"
     ANGER = "anger"
     FEAR = "fear"
@@ -42,11 +64,8 @@ class EmotionalState(Enum):
     DISGUST = "disgust"
     ANXIETY = "anxiety"
     DEPRESSION = "depression"
-    CONTENTMENT = "contentment"
-    EXCITEMENT = "excitement"
     LONELINESS = "loneliness"
     STRESS = "stress"
-
 
 class CulturalContext(Enum):
     """Cultural contexts for empathy adaptation"""
