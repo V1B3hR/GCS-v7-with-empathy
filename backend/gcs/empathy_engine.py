@@ -77,13 +77,18 @@ class CulturalContext(Enum):
     UNCERTAINTY_ACCEPTING = "uncertainty_accepting"
 
 
+from enum import Enum
+
 class EmpathyIntensity(Enum):
-    """Empathy response intensity levels"""
-    MINIMAL = "minimal"
-    GENTLE = "gentle"
-    MODERATE = "moderate"
-    STRONG = "strong"
-    INTENSIVE = "intensive"
+    DEPRESSED = 0              # Below minimal threshold
+    MINIMAL = 1
+    MINIMAL_GENTLE = 2         # Between minimal and gentle
+    GENTLE = 3
+    GENTLE_MODERATE = 4        # Between gentle and moderate
+    MODERATE = 5
+    MODERATE_STRONG = 6        # Between moderate and strong
+    STRONG = 7
+    VERY_INTENSIVE = 8         # Overreactive/very intensive
 
 
 @dataclass
