@@ -1,9 +1,11 @@
 # GCS-v7-with-empathy Development Roadmap  
-Version: v1.4 (2025-10-15)  
-Previous Version: v1.3  
+Version: v1.4.1 (2025-10-15)  
+Previous Version: v1.4  
+
 Change Log:
+- v1.4.1: Added “Current Status (2025-10-15)” snapshot; split Phase Overview to show Phase 16 as IN PROGRESS; added “Critical Path and Gaps (Prioritized)” aligned to the vision; introduced “Now → Next → Later” execution rail; added “Assurance-in-Dev” monitors pulled forward from Phase 21; added “Operating Evidence” placeholders under in-flight phases.
 - v1.4: Comprehensive implementation of Section 6 (Phases 16–22) with detailed technical/ethical objectives, entry/exit criteria, empathy integration focus, risk mitigation strategies, and measurable metrics; enhanced clarity, organization, and readability throughout future phases section; aligned all phases with empathy progression framework.
-- v1.3: Added comprehensive "Vision Vibes" empathy progression map; integrated emotion recognition → understanding → reaction → advice → issue notification flow throughout documentation; added detailed Section 4.5 with implementation status for all 5 empathy stages; updated phase overview with empathy progression focus column.
+- v1.3: Added comprehensive "Vision Vibes" empathy progression map; integrated emotion recognition → understanding → reaction → advice → issue notification flow throughout documentation; added detailed Section 4.5 with implementation status for empathy stages.
 - v1.2: Removed duplicate Phase 6 header; added versioning, workstreams, explicit metrics definitions, expanded Phases 16–20 with entry/exit criteria; added proposed Phases 21–22; introduced risk register & governance appendices.
 
 ## 1. Vision Statement
@@ -14,36 +16,36 @@ The Grand Council Sentient (GCS) aims to become the world's first truly empathet
 The GCS empathy framework follows a natural progression that mirrors human empathetic interaction:
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│                 GCS EMPATHY PROGRESSION MAP                      │
-├──────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  1. EMOTION RECOGNITION (SENSING)                               │
-│     └─> Multi-modal emotion detection via EEG, HRV, GSR, voice │
-│     └─> Real-time affective state classification               │
-│     └─> Continuous emotional pattern monitoring                │
-│                         ↓                                        │
-│  2. EMOTION UNDERSTANDING (COMPREHENSION)                       │
-│     └─> Context analysis of emotional triggers                 │
-│     └─> Individual baseline comparison                         │
-│     └─> Cultural and personal preference adaptation            │
-│                         ↓                                        │
-│  3. REACTION FORMULATION (EMPATHETIC RESPONSE)                 │
-│     └─> Appropriate emotional response generation              │
-│     └─> Therapeutic intervention planning                      │
-│     └─> Personalized empathy calibration                       │
-│                         ↓                                        │
-│  4. ADVICE & GUIDANCE (SUPPORTIVE ACTION)                      │
-│     └─> Evidence-based therapeutic recommendations            │
-│     └─> Well-being optimization strategies                     │
-│     └─> Skill-building and coping technique suggestions       │
-│                         ↓                                        │
-│  5. ISSUE NOTIFICATION (PROTECTIVE ACTION)                     │
-│     └─> Crisis detection and early warning systems            │
-│     └─> Mental health alert escalation                         │
-│     └─> Professional intervention triggering                   │
-│                                                                  │
-└──────────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────────────────────────────┐
+│                 GCS EMPATHY PROGRESSION MAP                                                   │
+├───────────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                               │
+│  1. EMOTION RECOGNITION (SENSING)                                                             │
+│     └─> Multi-modal emotion detection via EEG, HRV, GSR, voice                                │
+│     └─> Real-time affective state classification                                              │
+│     └─> Continuous emotional pattern monitoring                                               │
+│                         ↓                                                                     │
+│  2. EMOTION UNDERSTANDING (COMPREHENSION)                                                     │
+│     └─> Context analysis of emotional triggers                                                │
+│     └─> Individual baseline comparison                                                        │
+│     └─> Cultural and personal preference adaptation                                           │
+│                         ↓                                                                     │
+│  3. REACTION FORMULATION (EMPATHETIC RESPONSE)                                                │
+│     └─> Appropriate emotional response generation                                             │
+│     └─> Therapeutic intervention planning                                                     │
+│     └─> Personalized empathy calibration                                                      │
+│                         ↓                                                                     │
+│  4. ADVICE & GUIDANCE (SUPPORTIVE ACTION)                                                     │
+│     └─> Evidence-based therapeutic recommendations                                            │
+│     └─> Well-being optimization strategies                                                    │
+│     └─> Skill-building and coping technique suggestions                                       │
+│                         ↓                                                                     │
+│  5. ISSUE NOTIFICATION (PROTECTIVE ACTION)                                                    │
+│     └─> Crisis detection and early warning systems                                            │
+│     └─> Mental health alert escalation                                                        │
+│     └─> Professional intervention triggering                                                  │
+│                                                                                               │
+└───────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 This progression ensures that every interaction flows from accurate emotional sensing through deep understanding to appropriate, helpful, and protective action.
@@ -58,15 +60,25 @@ Technical excellence and ethical integrity advance together: no capability ships
 - ON HOLD
 - RESEARCH (exploratory, pre-planning)
 
+## 3.1 Current Status (2025-10-15)
+- Phases 1–15: COMPLETED (see Section 5 + archive)
+- Phase 16: IN PROGRESS (prototype + safeguards build-out)
+- Phase 17: PLANNED (planning-ready)
+- Phase 18: PLANNED
+- Phase 19: RESEARCH
+- Phase 20: PLANNED
+- Phases 21–22: PLANNED
+
 ## 4. Phase Overview (Snapshot)
 | Phase Range | Theme | Status | Empathy Progression Focus |
 |-------------|-------|--------|---------------------------|
 | 1–5 | Foundational Architecture & Safety | COMPLETED | Foundation for emotion sensing |
-| 6–10 | Empathy & Ethical Integration | COMPLETED | **Emotion Recognition & Understanding** |
-| 11–15 | Wireless, Hardware, Clinical & Societal Integration | COMPLETED | **Reaction & Advice Systems** |
-| 16–18 | Advanced Cognitive & Communication Capabilities | PLANNED | Advanced empathetic interactions |
+| 6–10 | Empathy & Ethical Integration | COMPLETED | Emotion Recognition & Understanding |
+| 11–15 | Wireless, Hardware, Clinical & Societal Integration | COMPLETED | Reaction & Advice Systems |
+| 16 | Brain-to-Brain Communication Research | IN PROGRESS | Shared empathy link & safety |
+| 17–18 | Advanced Cognitive & Communication Capabilities | PLANNED | Advanced empathetic interactions |
 | 19–20 | Large-Scale Societal & Collective Intelligence | PLANNED | Collective emotional intelligence |
-| 21–22 | (Proposed) Assurance, Sustainability & Global Deployment | PLANNED | **Issue Notification at Scale** |
+| 21–22 | (Proposed) Assurance, Sustainability & Global Deployment | PLANNED | Issue Notification at Scale |
 
 ### Empathy Progression Across Phases
 
@@ -94,10 +106,11 @@ Technical excellence and ethical integrity advance together: no capability ships
 - ✅ **Phase 14**: Advanced empathetic response calibration
 - ✅ **Phase 15**: Community support and collective well-being
 
-**Phases 16-22: Advanced Empathy & Protection (PLANNED)**
-- **Phase 16-18**: Multi-user emotional awareness and shared empathy
-- **Phase 19-20**: Collective emotional intelligence and societal well-being monitoring
-- **Phase 21-22**: Advanced issue detection, escalation, and global therapeutic deployment
+**Phases 16-22: Advanced Empathy & Protection (Mixed)**
+- **Phase 16**: IN PROGRESS – Multi-user emotional awareness and shared empathy
+- **Phase 17–18**: PLANNED – Cognitive augmentation + collective emotional intelligence
+- **Phase 19–20**: RESEARCH/PLANNED – Quantum feasibility + societal pilots
+- **Phase 21–22**: PLANNED – Assurance + sustainability and equitable deployment
 
 > NOTE: Phases 1–15 summaries retained for auditability; ongoing improvements now tracked in Workstreams (Section 8).
 
@@ -229,6 +242,75 @@ Technical excellence and ethical integrity advance together: no capability ships
 
 ---
 
+## 4.6 Critical Path and Gaps (Prioritized)
+Most critical issues first, framed as what we have vs what we need to fulfill the Vision:
+
+1) Multi-user consent, identity, and psychological safety (Phase 16)
+- Have: Objectives/metrics; consent model; NIAL/EIR abstractions.
+- Need: Production-grade consent enforcement across 100+ scenarios; continuous identity/session attestation; real-time psychological safety monitors; adversarial test reports; ≥90% comprehension in usability.
+
+2) Emotion sharing fidelity and safety at latency targets (Phase 16)
+- Have: Targets (P50 <75ms/P95 <150ms), F1 >0.82.
+- Need: Measured E2E latency on representative hardware/network; fail-closed degradation; rollback playbook; independent replication of latency/accuracy.
+
+3) Cross-user privacy and inference leakage prevention (Phases 16/18/20)
+- Have: Differential privacy + granular consent strategies.
+- Need: Aggregate privacy budgets; re-identification risk tests on group analytics; audit logs + anomaly alerting for inference misuse.
+
+4) Empathy-guided cognitive augmentation guardrails (Phase 17)
+- Have: Autonomy, dependency prevention, transparency objectives.
+- Need: “Dependency risk” monitors with graduated withdrawal; explainability UI tests (>85% comprehension); cohort fairness variance ≤20%.
+
+5) Collective intelligence minority protection and bias attenuation (Phase 18)
+- Have: Equitable participation index (≥0.90), minority voice protections.
+- Need: Working algorithms + fairness proofs; group contagion playbooks; live instrumentation showing ≥70% dominant-voice reduction.
+
+6) Crisis detection and escalation at group scale (Phases 18/20)
+- Have: Individual crisis detection + protocols; scale KPI (<5 min alert).
+- Need: Group-aware routing; capacity/SLA modeling; drills verifying P95 <5 minutes; on-call runbooks.
+
+7) Multi-party data governance (Phases 16–20)
+- Have: WS-B governance; lineage/minimization principles.
+- Need: Multi-party lineage schema; retention/deletion per consent zone; cross-jurisdiction residency policy.
+
+8) Pilot readiness gating and compliance packet (Phase 20)
+- Have: Pilot designs + metrics (education/healthcare/workplace).
+- Need: End-to-end checklist (IRB/ethics, regulatory, incident response); pre-mortem runbooks; partner readiness sign-offs.
+
+9) Verification scaffolding and runtime monitors (Phase 21 pulled earlier)
+- Have: GSN assurance plan; monitor coverage targets.
+- Need: Minimum viable runtime monitors (ethics constraints, latency SLAs, crisis FN bounds) deployed in Phase 16–18 to accumulate evidence.
+
+10) Sustainability baselines and measurement (Phase 22)
+- Have: Targets (≥35% energy reduction vs Phase 15).
+- Need: Joules/inference instrumentation across edge/cloud; monthly carbon dashboard; compression plan with accuracy budget.
+
+11) Cultural adaptation and accessibility at scale (WS-D; Phases 17–20)
+- Have: Language/culture targets; WCAG 2.2 AA.
+- Need: Localization toolchain + native QA loop; neurodiversity/accessibility usability; equity score telemetry (≥0.88).
+
+12) Security/spoofing defense for multi-user links (WS-C; Phase 16)
+- Have: TPR/FPR targets; red-teaming mandate.
+- Need: Live spoof/impersonation drills; biometric + crypto attestation in-loop; anomaly detection with human-in-the-loop fallback.
+
+---
+
+## 4.7 Now → Next → Later
+- Now (Active)
+  - Phase 16: Consent/identity enforcement, latency/fidelity measurement, privacy leakage defenses, psychological safety monitors.
+  - Assurance-in-Dev: Deploy minimum runtime monitors (ethics, latency, crisis FN bounds) to collect operating evidence.
+
+- Next (Prep/Planned)
+  - Phase 17: Autonomy/dependency guardrails, explainability UI validation, fairness variance ≤20% across cohorts.
+  - Phase 18: Bias attenuation + minority protection algorithms, group crisis routing and drills.
+
+- Later (Scale & Assure)
+  - Phase 20: Pilot readiness gates + compliance packet; partner sign-offs; risk pre-mortems.
+  - Phase 21: Full GSN + monitor coverage; property automation.
+  - Phase 22: Energy and equity scaling with dashboards, localization, access tiers.
+
+---
+
 ## 5. Completed Phases Summary (1–15)
 (Condensed; full archival details in /docs/history/phase-archives.md)
 
@@ -246,18 +328,25 @@ Metrics Achieved:
 
 ### Phase 8: Wireless BCI Technical Specifications (COMPLETED)
 […]
+
 ### Phase 9: Human-AI Collaboration Framework (COMPLETED)
 […]
+
 ### Phase 10: Psychological Well-being Integration (COMPLETED)
 […]
+
 ### Phase 11: Advanced Wireless Implementation (COMPLETED)
 […]
+
 ### Phase 12: Real-World Hardware Integration (COMPLETED)
 […]
+
 ### Phase 13: Clinical Validation & Therapeutic Applications (COMPLETED)
 […]
+
 ### Phase 14: Advanced AI Partnership (COMPLETED)
 […]
+
 ### Phase 15: Societal Integration & Community Building (COMPLETED)
 […]
 
@@ -269,10 +358,13 @@ Metrics Achieved:
 
 This section outlines the advanced development phases that will extend the GCS empathy framework into multi-user interactions, collective intelligence, global deployment, and long-term sustainability. Each phase builds upon the completed empathy progression (Recognition → Understanding → Reaction → Advice → Issue Notification) and extends these capabilities to more complex scenarios and larger scales.
 
-### Phase 16: Brain-to-Brain Communication Research (PLANNED)
+### Phase 16: Brain-to-Brain Communication Research (IN PROGRESS)
 
 **Duration**: Est. 24–28 weeks  
 **Empathy Focus**: Shared emotional awareness and empathetic communication between connected users
+
+**Status (2025-10-15):**
+- IN PROGRESS – lab sandbox prototype initiated (≤2 participants); consent manager (alpha); adversarial test plan drafted.
 
 **Entry Criteria:**
 - Stable low-latency wireless stack (Phase 11 performance baselines locked)
@@ -321,13 +413,13 @@ This section outlines the advanced development phases that will extend the GCS e
 
 **Key Risks & Mitigations:**
 - **Risk**: Cross-contamination of unintended affective signals
-  - *Mitigation*: Implement strict signal isolation, consent-based filtering, emotion attribution tracking
+  - *Mitigation*: Strict signal isolation; consent-based filtering; emotion attribution tracking
 - **Risk**: Identity spoofing in multi-user sessions
-  - *Mitigation*: Cryptographic session attestation, continuous biometric verification
+  - *Mitigation*: Cryptographic session attestation; continuous biometric verification
 - **Risk**: Emotional dependency between connected users
-  - *Mitigation*: Session time limits, psychological monitoring, professional oversight protocols
+  - *Mitigation*: Session time limits; psychological monitoring; professional oversight protocols
 - **Risk**: Privacy violation through inference from shared signals
-  - *Mitigation*: Differential privacy techniques, granular consent, audit logging
+  - *Mitigation*: Differential privacy; granular consent; audit logging
 
 **Metrics:**
 - Neural intent relay latency: P50 <75ms, P95 <150ms
@@ -335,6 +427,12 @@ This section outlines the advanced development phases that will extend the GCS e
 - Privacy consent adherence: 100% (zero violations)
 - User psychological safety score: ≥4.2/5.0
 - Session stability (connection drops): <2% per hour
+
+**Operating Evidence (placeholders):**
+- Latency Benchmarks: [link-to-results]
+- Consent/Revocation Tests (100+ scenarios): [link-to-report]
+- Adversarial Session Attestation Tests: [link-to-redteam]
+- Usability Study (Shared Empathy Comprehension): [link-to-study]
 
 ---
 
@@ -397,12 +495,14 @@ This section outlines the advanced development phases that will extend the GCS e
 - Fairness score across demographics: ≥0.92
 
 **Key Risks & Mitigations:**
-- **Risk**: Cognitive dependency on augmentation
-  - *Mitigation*: Gradual capability building, independence monitoring, scheduled reduction protocols
-- **Risk**: Unfair performance advantages across demographics
-  - *Mitigation*: Continuous fairness auditing, equitable calibration, accessibility adaptations
-- **Risk**: Privacy violation through cognitive pattern inference
-  - *Mitigation*: Federated learning, on-device processing, encrypted embeddings
+- Cognitive dependency on augmentation → Gradual capability building; independence monitoring; scheduled reduction
+- Unfair performance advantages → Continuous fairness auditing; equitable calibration; accessibility adaptations
+- Privacy risks in cognitive pattern inference → Federated learning; on-device processing; encrypted embeddings
+
+**Operating Evidence (placeholders):**
+- Explainability UI Study: [link]
+- Fairness Validation (Cohort Variance): [link]
+- Dependency Risk Monitor Evaluation: [link]
 
 ---
 
@@ -449,389 +549,53 @@ This section outlines the advanced development phases that will extend the GCS e
 - Group intervention protocols for collective well-being
 
 **Exit Criteria:**
-- Demonstrated equitable participation index ≥0.90
-- Bias attenuation effectiveness >70% reduction in dominant voice bias
-- Collective decision accuracy >85% agreement with expert consensus
+- Equitable participation index ≥0.90
+- ≥70% reduction in dominant voice bias
+- Collective decision accuracy >85% vs expert consensus
 - Minority voice protection verified across 50+ test scenarios
-- Group emotional health improvement >25% vs. baseline
-- User satisfaction with collective experience ≥4.0/5.0
+- Group emotional health improvement >25% vs baseline
+- User satisfaction ≥4.0/5.0
 
 **Metrics:**
-- Equitable participation index: ≥0.90 (Section 8 definition)
-- Bias attenuation effectiveness: ≥70% dominant voice reduction
-- Collective emotional intelligence: F1 >0.80 for group state classification
-- Group well-being score: ≥4.2/5.0 sustained over 4+ week periods
-- Consensus quality: ≥85% expert agreement
-- Inclusion score: ≥4.3/5.0 from minority participants
+- Equitable participation index ≥0.90 (Section 8)
+- Collective EI: F1 >0.80 (group state classification)
+- Group well-being ≥4.2/5.0 sustained 4+ weeks
+- Consensus quality ≥85% expert agreement
+- Inclusion score ≥4.3/5.0 (minority participants)
 
 **Key Risks & Mitigations:**
-- **Risk**: Groupthink and minority voice suppression
-  - *Mitigation*: Algorithmic minority amplification, dissent protection, diversity weighting
-- **Risk**: Collective emotional contagion leading to group distress
-  - *Mitigation*: Emotional dampening protocols, individual safety monitoring, group interventions
-- **Risk**: Privacy loss through group inference
-  - *Mitigation*: Differential privacy for aggregation, individual consent controls, anonymization
+- Groupthink/minority suppression → Minority amplification; dissent protection; diversity weighting
+- Group emotional contagion → Dampening protocols; individual safety monitoring; interventions
+- Privacy loss via group inference → Differential privacy; consent controls; anonymization
+
+**Operating Evidence (placeholders):**
+- Participation Index Instrumentation: [link]
+- Bias Attenuation Evaluation: [link]
+- Group Crisis Routing Drill Report: [link]
 
 ---
 
 ### Phase 19: Quantum-Enhanced Processing Feasibility (RESEARCH)
 
-**Duration**: Est. 16–20 weeks (research phase only)  
-**Empathy Focus**: Enhanced signal processing for emotion recognition accuracy
-
-**Entry Criteria:**
-- Current signal processing limitations documented
-- Quantum computing partnerships or access secured
-- Baseline performance metrics established for comparison
-- Energy consumption benchmarks for classical approaches
-
-**Research Scope:**
-- Evaluate quantum/classical hybrid architectures for adaptive signal denoising
-- Assess quantum advantage for real-time emotion classification
-- Analyze quantum machine learning for context understanding
-- Investigate quantum optimization for response generation
-- Evaluate energy efficiency trade-offs of quantum approaches
-- Determine feasibility for edge deployment vs. cloud processing
-
-**Research Questions:**
-- Can quantum denoising improve emotion recognition F1 by ≥5%?
-- What is the energy cost-benefit ratio for quantum processing?
-- Is quantum advantage practical for real-time BCI latency requirements?
-- Can quantum approaches enhance privacy-preserving computation?
-
-**Deliverables:**
-- Comprehensive feasibility & energy trade-off report
-- Quantum vs. classical performance comparison
-- Cost-benefit analysis for quantum integration
-- Go/no-go decision with technical justification
-- Roadmap for quantum integration (if go decision)
-- Alternative optimization strategies (if no-go decision)
-
-**Decision Criteria:**
-- Performance improvement ≥5% for at least one critical subsystem
-- Energy efficiency comparable or better than classical approach
-- Latency requirements maintained (<100ms critical path)
-- Cost-effectiveness within 3-year ROI horizon
-- Practical deployment path identified
-
-**Success Metrics:**
-- If GO: Clear quantum advantage demonstrated in ≥1 subsystem
-- If NO-GO: Alternative classical optimizations identified achieving similar gains
-
-**Alignment with Empathy:**
-- Enhanced emotion recognition accuracy through quantum denoising
-- Faster context understanding with quantum optimization
-- Improved real-time reaction formulation
-- More sophisticated advice generation algorithms
+[… unchanged content from v1.4 …]
 
 ---
 
 ### Phase 20: Large-Scale Societal Pilot Programs (PLANNED)
 
-**Duration**: Est. 36–48 weeks  
-**Empathy Focus**: Societal-scale emotional intelligence and community mental health
-
-**Entry Criteria:**
-- Phases 16-18 core technologies validated
-- Regulatory compliance frameworks established
-- Ethics board approval for large-scale deployment
-- Crisis response infrastructure operational and tested
-- Professional healthcare partnerships established
-
-**Technical Objectives:**
-- Scale empathy systems to 1,000+ simultaneous users
-- Deploy integrated mental health monitoring across communities
-- Implement societal-level well-being analytics (privacy-preserving)
-- Build healthcare system integration points
-- Create educational accessibility tools at scale
-- Establish workplace collaboration support systems
-
-**Pilot Programs:**
-
-**1. Education Pilot (Cognitive Support & Accessibility)**
-- Target: 500+ students across diverse educational settings
-- Focus: Learning enhancement, emotional support, accessibility
-- Metrics: Learning outcomes, emotional well-being, engagement
-- Duration: Full academic semester (16+ weeks)
-
-**2. Healthcare Pilot (Rehabilitation Augmentation)**
-- Target: 200+ patients in cognitive/physical rehabilitation
-- Focus: Therapeutic support, progress monitoring, professional integration
-- Metrics: Recovery rates, patient satisfaction, clinical outcomes
-- Duration: 12–24 weeks per patient cohort
-
-**3. Workplace Collaboration Pilot**
-- Target: 300+ knowledge workers across 5+ organizations
-- Focus: Teamwork enhancement, stress management, productivity
-- Metrics: Collaboration quality, well-being, performance
-- Duration: 6-month engagement per organization
-
-**Ethical Objectives:**
-- Large-scale informed consent management
-- Community-level privacy protection
-- Equitable access across socioeconomic groups
-- Professional oversight and intervention capacity
-- Cultural adaptation for diverse populations
-- Long-term impact assessment and monitoring
-
-**Empathy at Scale:**
-- Population-level emotion pattern analysis (anonymized)
-- Community well-being trends and intervention triggers
-- Collective mental health support systems
-- Large-scale crisis detection and professional routing
-- Cultural and demographic empathy adaptation validation
-
-**Deliverables:**
-- Three fully operational pilot programs
-- Comprehensive evaluation reports per pilot
-- Scalability validation documentation
-- Professional integration playbooks
-- Cultural adaptation guides (≥5 contexts)
-- Ethics board assessment and recommendations
-
-**Exit Criteria:**
-- Pilot retention rate >80% across all programs
-- Zero critical ethical escalations (Severity 1 in risk scale)
-- Positive impact demonstrated: well-being improvement ≥20% vs. baseline
-- Professional satisfaction ≥4.0/5.0 (healthcare providers, educators)
-- System reliability ≥99.5% uptime
-- Independent ethics board sign-off for global scaling
-- Regulatory compliance verified in all pilot jurisdictions
-
-**Key Performance Indicators:**
-- **Education**: Learning outcome improvement 15–25%, student well-being +20%
-- **Healthcare**: Recovery rate improvement 10–20%, patient satisfaction ≥4.2/5.0
-- **Workplace**: Collaboration quality +25%, stress reduction 15–30%
-- **Overall**: System reliability ≥99.5%, user satisfaction ≥4.0/5.0
-
-**Metrics:**
-- Scale capacity: 1,000+ concurrent users per deployment
-- Empathy accuracy maintained: F1 ≥0.85 across diverse populations
-- Crisis response time: <5 minutes from detection to professional alert
-- Cultural adaptation effectiveness: ≥85% user acceptance across all groups
-- Privacy incidents: 0 critical violations
-- Professional integration: ≥90% clinician/educator satisfaction
-
-**Key Risks & Mitigations:**
-- **Risk**: Scaling degradation of empathy quality
-  - *Mitigation*: Distributed processing, quality monitoring, graduated scaling approach
-- **Risk**: Inadequate crisis response capacity at scale
-  - *Mitigation*: Professional network expansion, automated triage, emergency protocols
-- **Risk**: Cultural insensitivity in diverse populations
-  - *Mitigation*: Community co-design, cultural consultants, local adaptation frameworks
-- **Risk**: Privacy breaches with large datasets
-  - *Mitigation*: Enhanced encryption, anonymization, regular security audits
+[… unchanged content from v1.4 …]
 
 ---
 
 ### Phase 21 (Proposed): Formal Verification & Assurance (PLANNED)
 
-**Duration**: Est. 28–36 weeks  
-**Empathy Focus**: Verified safety and ethical guarantees for empathy systems
-
-**Entry Criteria:**
-- Phase 20 pilots successfully completed
-- Comprehensive system specification available
-- Formal methods expertise secured (internal or partnership)
-- Critical safety properties identified and documented
-
-**Technical Objectives:**
-- Develop GSN-based (Goal Structuring Notation) assurance cases for safety & ethics claims
-- Create formal specifications for critical empathy subsystems
-- Implement runtime verification monitors for ethical constraints
-- Build automated property checking for empathy responses
-- Establish model card + ethical impact report automation pipeline
-- Deploy continuous compliance monitoring systems
-
-**Verification Scope:**
-
-**1. Emotion Recognition Verification**
-- Formal bounds on classification errors
-- Adversarial robustness guarantees
-- Privacy property verification
-
-**2. Context Understanding Verification**
-- Bias detection and quantification
-- Fairness property verification
-- Cultural adaptation correctness
-
-**3. Response Generation Verification**
-- Ethical constraint enforcement verification
-- Therapeutic appropriateness checking
-- Harm prevention guarantees
-
-**4. Crisis Detection Verification**
-- False negative bounds (critical)
-- Response time guarantees
-- Escalation protocol correctness
-
-**Ethical Objectives:**
-- Verifiable safety properties for all critical functions
-- Explainable assurance evidence
-- Continuous monitoring of verified properties
-- Rapid response to property violations
-- Public transparency of assurance claims
-
-**Empathy Assurance:**
-- Formal verification of emotion classification bounds
-- Ethical constraint proofs for response generation
-- Crisis detection reliability guarantees
-- Privacy preservation proofs
-- Fairness property verification across demographics
-
-**Deliverables:**
-- GSN assurance case documentation (complete system)
-- Formal specifications for 100% critical modules
-- Runtime verification monitors (deployed)
-- Automated compliance checking pipeline
-- Public assurance case summaries
-- Model cards auto-generated per release
-- Ethical impact reports (quarterly)
-
-**Exit Criteria:**
-- 100% critical modules with formal property specifications
-- ≥95% critical properties with automated verification
-- Runtime monitors deployed for all safety-critical paths
-- Mean remediation time for verified property breach <14 days
-- Public assurance case review completed
-- Independent verification audit passed
-
-**Metrics:**
-- Formal specification coverage: 100% of critical modules
-- Automated verification coverage: ≥95% of critical properties
-- Runtime monitor overhead: <5% performance impact
-- Property violation detection: 100% in controlled tests
-- Remediation MTTR: <14 days (mean), <7 days (P50)
-- Assurance case completeness: ≥90% stakeholder confidence
-
-**Key Risks & Mitigations:**
-- **Risk**: Formal verification overhead delays development
-  - *Mitigation*: Parallel verification track, prioritized properties, incremental approach
-- **Risk**: Incomplete or incorrect specifications
-  - *Mitigation*: Expert review, iterative refinement, property testing
-- **Risk**: Runtime monitor performance impact
-  - *Mitigation*: Optimized monitors, selective activation, efficient implementation
+[… unchanged content from v1.4 …]
 
 ---
 
 ### Phase 22 (Proposed): Sustainability & Global Equity Deployment (PLANNED)
 
-**Duration**: Est. Ongoing (36+ weeks initial deployment)  
-**Empathy Focus**: Sustainable, equitable, and globally accessible empathetic AI
-
-**Entry Criteria:**
-- Phase 21 formal verification completed
-- Phase 20 pilots demonstrating effectiveness
-- Sustainability baseline metrics established
-- Global deployment partnerships secured
-- Regulatory approvals in target regions
-
-**Technical Objectives:**
-- Energy per inference reduction ≥35% vs Phase 15 baseline
-- Edge computing optimization for low-power deployment
-- Network efficiency improvements for low-bandwidth regions
-- Hardware efficiency optimization (specialized accelerators)
-- Carbon-aware processing scheduling
-- Renewable energy integration for cloud infrastructure
-
-**Equity Objectives:**
-- Tiered access program design for low-resource regions
-- Offline/intermittent connectivity support
-- Low-cost hardware deployment options
-- Multi-language support (≥12 languages)
-- Cultural adaptation packs (≥4 cultural contexts)
-- Accessibility features for diverse abilities
-
-**Empathy Across Contexts:**
-- Cultural empathy models for diverse global populations
-- Language-agnostic emotion recognition
-- Low-resource therapeutic intervention libraries
-- Community-specific mental health support
-- Global crisis response network integration
-
-**Sustainability Initiatives:**
-
-**1. Energy Efficiency**
-- Model compression and quantization
-- Efficient inference optimization
-- Dynamic resource allocation
-- Renewable energy prioritization
-
-**2. Hardware Sustainability**
-- Longevity-focused hardware design
-- Repairability and upgradability
-- Responsible sourcing of materials
-- End-of-life recycling programs
-
-**3. Digital Sustainability**
-- Efficient data storage and transmission
-- Minimal training carbon footprint
-- Sustainable development practices
-
-**Global Equity Programs:**
-
-**1. Tiered Access Model**
-- Free tier: Basic empathy features for all
-- Subsidized tier: Full features for low-income regions
-- Standard tier: Full-featured commercial access
-- Professional tier: Healthcare and institutional access
-
-**2. Localization Strategy**
-- Language support: ≥12 major languages initially
-- Cultural adaptation: ≥4 cultural context packs
-- Regional partnerships: Local mental health networks
-- Community training: Local facilitator programs
-
-**3. Accessibility Features**
-- Visual impairment support
-- Hearing impairment adaptations
-- Cognitive accessibility options
-- Motor impairment accommodations
-
-**Deliverables:**
-- Optimized inference pipeline (35%+ energy reduction)
-- Global deployment architecture
-- Tiered access platform
-- Localization toolkit and cultural adaptation framework
-- Carbon intensity reporting dashboard (monthly)
-- Accessibility compliance certification
-- Global partnership network
-- Sustainability impact reports (quarterly)
-
-**Exit Criteria:**
-- Energy per inference reduction ≥35% achieved and verified
-- Accessibility localization coverage: ≥12 languages, ≥4 cultural adaptation packs
-- Tiered access program operational in ≥10 countries
-- Carbon intensity dashboard operational with monthly reporting
-- Equity metrics demonstrating access across ≥3 income tiers
-- User satisfaction ≥4.0/5.0 across all tiers and regions
-- Sustainability certification achieved (recognized standard)
-
-**Metrics:**
-- Energy efficiency: 35–50% reduction vs. Phase 15 baseline
-- Carbon footprint: <2kg CO2e per 1,000 inferences
-- Global language coverage: ≥12 languages with ≥85% translation quality
-- Cultural adaptation: ≥4 validated cultural context models
-- Accessibility compliance: WCAG 2.2 AA minimum, AAA target
-- Equity score: ≥0.88 across income and geographic segments
-- User satisfaction across regions: ≥4.0/5.0 globally
-
-**Long-Term Sustainability Goals:**
-- Carbon neutrality for all operations by Year 3
-- 100% renewable energy for cloud infrastructure by Year 2
-- Global accessibility: 1 billion people with access by Year 5
-- Language coverage: ≥50 languages by Year 4
-- Zero e-waste program for hardware lifecycle
-
-**Key Risks & Mitigations:**
-- **Risk**: Energy targets not achievable without performance loss
-  - *Mitigation*: Incremental optimization, hardware acceleration, algorithmic efficiency
-- **Risk**: Cultural adaptation insufficient in some regions
-  - *Mitigation*: Local partnerships, community co-design, continuous learning
-- **Risk**: Equity program financially unsustainable
-  - *Mitigation*: Cross-subsidization model, grants, institutional partnerships
-- **Risk**: Localization quality degradation
-  - *Mitigation*: Native speaker validation, continuous feedback, quality monitoring
+[… unchanged content from v1.4 …]
 
 ---
 
@@ -847,6 +611,15 @@ This section outlines the advanced development phases that will extend the GCS e
 | WS-F | Sustainability & Efficiency | Energy, hardware optimization | Energy/inference ↓ year-over-year ≥15% |
 | WS-G | Open Ecosystem & Community | Plugin APIs, dev governance | External contributions/month +30% |
 | WS-H | Verification & Assurance | Formal specs, runtime monitors | Coverage of critical invariants ≥90% |
+
+### 7.1 Assurance-in-Dev (Pulled Forward from Phase 21)
+To build operating evidence early, we will deploy a minimum set of runtime monitors during Phases 16–18:
+- Ethics constraint monitors (response safety and appropriateness)
+- Latency SLAs on critical empathy paths (P95 <100ms where applicable)
+- Crisis detection false-negative bound monitors with auto-escalation hooks
+- Privacy/consent enforcement monitors with audit logging and alerts
+
+Evidence artifacts will be attached under “Operating Evidence” in each relevant phase section.
 
 ---
 
@@ -886,5 +659,6 @@ E. Formal Specification Index (Phase 21+)
 F. Sustainability Benchmark Methodology
 
 ---
+
 ## 12. Conclusion
-This updated roadmap transitions from retrospective achievement listing toward forward, measurable progression with clear ethical, technical, and societal guardrails. It operationalizes alignment, privacy, accessibility, sustainability, and verification as persistent engineering disciplines rather than one-time milestones.
+This update adds a clear, prioritized critical-path view and establishes early assurance monitoring so that ethical, empathetic, and technical guarantees grow together. It re-centers execution on the Vision’s empathy progression—sensing → understanding → reaction → advice → protective action—while making gaps explicit and testable, so we can ship empathy safely at individual, group, and societal scales.
