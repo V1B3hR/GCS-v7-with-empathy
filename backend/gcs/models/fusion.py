@@ -68,6 +68,14 @@ class MultimodalFusion(keras.Model):
             # Layer normalization
             self.layer_norm = layers.LayerNormalization(name='fusion_layer_norm')
         
+        # Projection layers to common dimension
+        self.projection_layers = {
+            'eeg': layers.Dense(self.hidden_dim, name='proj_eeg'),
+            'physio': layers.Dense(self.hidden_dim, name='proj_physio'),
+            'voice': layers.Dense(self.hidden_dim, name='proj_voice'),
+            'text': layers.Dense(self.hidden_dim, name='proj_text')
+        }
+        
         # Gating mechanism for modality weighting
         self.gate_dense = layers.Dense(4, activation='sigmoid', name='fusion_gate')
         
@@ -120,16 +128,25 @@ class MultimodalFusion(keras.Model):
         if not available_embeddings:
             raise ValueError("No modalities available for fusion")
         
+        # Project embeddings to common dimension
+        projected_embeddings = []
+        for emb, name in zip(available_embeddings, modality_names):
+            if name in self.projection_layers:
+                projected_embeddings.append(self.projection_layers[name](emb))
+            else:
+                # Fallback for unknown modality
+                projected_embeddings.append(emb)
+        
         # Apply gating
-        if len(available_embeddings) > 1:
+        if len(projected_embeddings) > 1:
             # Compute attention weights
-            concat_for_gate = tf.concat(available_embeddings, axis=-1)
+            concat_for_gate = tf.concat(projected_embeddings, axis=-1)
             gates = self.gate_dense(concat_for_gate)  # (batch, 4)
             
             # Apply gates to corresponding modalities
             gated_embeddings = []
             gate_idx = 0
-            for emb, name in zip(available_embeddings, modality_names):
+            for emb in projected_embeddings:
                 if gate_idx < gates.shape[-1]:
                     gate = gates[:, gate_idx:gate_idx+1]
                     gated_embeddings.append(emb * gate)
@@ -137,11 +154,11 @@ class MultimodalFusion(keras.Model):
                     gated_embeddings.append(emb)
                 gate_idx += 1
         else:
-            gated_embeddings = available_embeddings
+            gated_embeddings = projected_embeddings
         
         # Fusion
         if self.fusion_type == 'attention' and len(gated_embeddings) > 1:
-            # Stack for attention: (batch, n_modalities, embedding_dim)
+            # Stack for attention: (batch, n_modalities, hidden_dim)
             stacked = tf.stack(gated_embeddings, axis=1)
             
             # Self-attention
