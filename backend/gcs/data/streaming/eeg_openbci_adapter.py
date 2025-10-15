@@ -260,7 +260,7 @@ def create_eeg_adapter(config: Dict) -> EEGStreamAdapter:
     streaming_config = config.get('simulation', {})
     
     stream_config = EEGStreamConfig(
-        board_type='synthetic',  # Always use synthetic for safety
+        board_type=streaming_config.get('board_type', 'synthetic'),
         sampling_rate=streaming_config.get('synthetic_sample_rate', 250),
         n_channels=streaming_config.get('synthetic_eeg_channels', 8),
         window_size=4.0

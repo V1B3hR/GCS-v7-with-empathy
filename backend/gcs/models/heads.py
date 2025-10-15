@@ -191,7 +191,7 @@ def concordance_correlation_coefficient(y_true, y_pred):
     
     covariance = tf.reduce_mean((y_true - mean_true) * (y_pred - mean_pred))
     
-    ccc = (2 * covariance) / (var_true + var_pred + (mean_true - mean_pred) ** 2 + 1e-8)
+    ccc = (2 * covariance) / (var_true + var_pred + (mean_true - mean_pred) ** 2 + tf.keras.backend.epsilon())
     
     return ccc
 

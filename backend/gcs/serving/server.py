@@ -11,25 +11,55 @@ Provides:
 import asyncio
 import logging
 import time
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple, Any
 import numpy as np
 import yaml
 
-try:
-    from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
-    from fastapi.middleware.cors import CORSMiddleware
-    from pydantic import BaseModel
-    FASTAPI_AVAILABLE = True
-except ImportError:
-    FASTAPI_AVAILABLE = False
-    logging.warning("FastAPI not available. Install: pip install fastapi uvicorn")
 
-try:
-    from prometheus_client import Counter, Histogram, Gauge, generate_latest
-    from prometheus_client import CONTENT_TYPE_LATEST
-    PROMETHEUS_AVAILABLE = True
-except ImportError:
-    PROMETHEUS_AVAILABLE = False
+def optional_import(module_name: str, symbols: List[str], warning_message: str) -> Tuple[List[Any], bool]:
+    """
+    Utility function for optional dependency handling
+    
+    Args:
+        module_name: Name of the module to import
+        symbols: List of symbols to import from the module
+        warning_message: Warning message to display if import fails
+    
+    Returns:
+        Tuple of (list of imported symbols or Nones, import success flag)
+    """
+    try:
+        module = __import__(module_name, fromlist=symbols)
+        imported = [getattr(module, sym) for sym in symbols]
+        return imported, True
+    except ImportError:
+        logging.warning(warning_message)
+        return [None] * len(symbols), False
+
+
+# FastAPI optional import
+(FastAPI, WebSocket, WebSocketDisconnect, HTTPException), FASTAPI_AVAILABLE = optional_import(
+    "fastapi", ["FastAPI", "WebSocket", "WebSocketDisconnect", "HTTPException"],
+    "FastAPI not available. Install: pip install fastapi uvicorn"
+)
+(CORSMiddleware,), _ = optional_import(
+    "fastapi.middleware.cors", ["CORSMiddleware"],
+    "FastAPI CORS middleware not available. Install: pip install fastapi"
+)
+(BaseModel,), _ = optional_import(
+    "pydantic", ["BaseModel"],
+    "Pydantic not available. Install: pip install pydantic"
+)
+
+# Prometheus optional import
+(Counter, Histogram, Gauge, generate_latest), PROMETHEUS_AVAILABLE = optional_import(
+    "prometheus_client", ["Counter", "Histogram", "Gauge", "generate_latest"],
+    "Prometheus client not available. Install: pip install prometheus_client"
+)
+(CONTENT_TYPE_LATEST,), _ = optional_import(
+    "prometheus_client", ["CONTENT_TYPE_LATEST"],
+    "Prometheus client not available. Install: pip install prometheus_client"
+)
 
 
 # Prometheus metrics
