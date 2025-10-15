@@ -2,17 +2,28 @@
 
 ## Overview
 
-Production-ready multimodal emotion recognition system with empathy-aware serving.
+Production-ready multimodal emotion recognition system implementing the first two stages of the [GCS Empathy Progression](ROADMAP.md#45-empathy-progression-implementation-map): **Emotion Recognition** and **Emotion Understanding**.
 
 **Features:**
-- ✅ Multimodal fusion: EEG, physiological, voice, text
+- ✅ **Stage 1 - Emotion Recognition**: Multimodal fusion (EEG, physiological, voice, text)
 - ✅ 28-category emotion taxonomy (EmotionalState)
-- ✅ Valence/arousal continuous predictions
+- ✅ Valence/arousal continuous predictions (F1 >0.87)
+- ✅ **Stage 2 - Emotion Understanding**: Individual baseline comparison and context analysis
 - ✅ MC Dropout for uncertainty estimation
 - ✅ Real-time WebSocket streaming
+- ✅ **Stage 5 - Issue Notification**: Crisis detection with 6-level severity classification
 - ✅ Prometheus metrics
-- ✅ Crisis detection
 - ✅ Graceful simulation fallback
+
+**Part of the Complete Empathy Pipeline:**
+This module provides the sensing and understanding foundation for the full 5-stage empathy progression:
+1. ✅ Emotion Recognition (this module)
+2. ✅ Emotion Understanding (this module)
+3. ✅ Reaction Formulation (`empathy_engine.py`)
+4. ✅ Advice & Guidance (`empathy_engine.py` + therapeutic frameworks)
+5. ✅ Issue Notification (`CrisisDetector` in `empathy_engine.py`)
+
+See [docs/empathy_integration.md](docs/empathy_integration.md) for the complete empathy framework.
 
 ## Quick Start
 

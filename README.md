@@ -68,7 +68,10 @@ Code
 
 ## Development Roadmap
 
-The GCS development follows a comprehensive roadmap centered on creating truly empathetic AI through a clear progression: **Emotion Recognition → Understanding → Reaction → Advice → Issue Notification**. See our detailed [Development Roadmap](ROADMAP.md) for complete project planning.
+The GCS development follows a comprehensive roadmap centered on creating truly empathetic AI through a clear progression: **Emotion Recognition → Understanding → Reaction → Advice → Issue Notification**. 
+
+📖 **[Quick Start: Empathy Progression Guide](EMPATHY_PROGRESSION_GUIDE.md)** - Complete overview of all 5 empathy stages  
+🗺️ **[Detailed Roadmap](ROADMAP.md)** - Full project planning and phase mapping
 
 ### Empathy Vision: The Five-Stage Progression
 
