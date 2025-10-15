@@ -7,11 +7,49 @@ quantum_processing:
   
   # Quantum backend configuration
   backend:
-    type: "simulator"  # Options: simulator, ibmq_quantum, classical_fallback
-    provider: "qiskit"  # Options: qiskit, cirq, custom
+    type: "simulator"  # Options: simulator, ibmq_quantum, aws_braket, azure_quantum, classical_fallback
+    provider: "qiskit"  # Options: qiskit, cirq, braket, custom
     max_qubits: 8
     shots: 1024  # Number of circuit executions
     optimization_level: 2  # Circuit optimization (0-3)
+  
+  # Quantum computing partnerships (Phase 19 next steps)
+  partnerships:
+    ibm_quantum:
+      enabled: false  # Set to true when partnership is secured
+      api_token: ""  # Set via environment variable: IBM_QUANTUM_TOKEN
+      hub: ""  # e.g., "ibm-q", "partner-hub"
+      group: ""  # Your group name
+      project: ""  # Your project name
+      backend_name: "ibmq_manila"  # Or other available backend
+      contact: "quantum@ibm.com"  # For partnership inquiries
+      network_url: "https://qiskit.org/advocates"
+    
+    aws_braket:
+      enabled: false  # Set to true when AWS account is configured
+      aws_region: "us-east-1"  # AWS region for Braket service
+      s3_bucket: ""  # S3 bucket for results
+      device_arn: ""  # ARN of quantum device (e.g., IonQ, Rigetti)
+      contact: "aws-braket-support@amazon.com"
+      service_url: "https://aws.amazon.com/braket"
+    
+    azure_quantum:
+      enabled: false  # Alternative quantum provider
+      workspace: ""
+      resource_group: ""
+      subscription_id: ""
+      location: "eastus"
+      provider: ""  # e.g., "ionq", "quantinuum"
+    
+    google_quantum_ai:
+      enabled: false  # Alternative quantum provider
+      project_id: ""
+      processor_id: ""
+    
+    rigetti_computing:
+      enabled: false  # Alternative quantum provider
+      api_key: ""
+      endpoint: "https://api.rigetti.com"
   
   # Processing mode
   mode:
@@ -24,11 +62,37 @@ quantum_processing:
   # Performance targets (Phase 19 exit criteria)
   targets:
     emotion_recognition_f1: 0.90  # 3%+ improvement over classical 0.87
-    latency_p50_ms: 45.0  # 40% reduction vs classical
-    latency_p95_ms: 80.0
+    latency_p50_ms: 45.0  # 40% reduction vs classical (~75ms baseline)
+    latency_p95_ms: 80.0  # Target maximum latency
     energy_ratio_max: 1.5  # Max 1.5x energy vs classical
-    explainability_score: 0.80  # User comprehension in studies
+    explainability_score: 0.80  # User comprehension in studies (≥80%)
     fallback_robustness: 1.0  # 100% graceful degradation
+    cost_justification: true  # Must demonstrate ROI for production
+  
+  # Benchmarking configuration (Phase 19 next steps)
+  benchmarking:
+    enabled: true
+    real_hardware_testing: false  # Set to true when partnerships secured
+    benchmark_datasets:
+      - "DEAP"  # EEG emotion dataset
+      - "RAVDESS"  # Audio-visual emotion dataset
+      - "custom_clinical"  # Clinical validation dataset
+    metrics_to_track:
+      - accuracy
+      - latency
+      - energy_consumption
+      - cost_per_inference
+      - circuit_depth
+      - gate_count
+      - error_rates
+    comparison_baseline: "classical_tensorflow"
+    report_frequency: "weekly"
+    production_readiness_checklist:
+      - quantum_advantage_validated
+      - cost_benefit_positive
+      - reliability_acceptable
+      - security_audit_passed
+      - disaster_recovery_tested
   
   # Quantum-specific settings
   quantum:
@@ -53,6 +117,27 @@ societal_pilots:
     data_dir: "/data/gcs_pilots"
     max_concurrent_sites: 10
     max_participants_per_site: 1000
+    
+  # Enrollment targets (Phase 20 next steps)
+  enrollment:
+    total_target: 1200  # Target: 900-1500 total participants
+    min_target: 900
+    max_target: 1500
+    per_context_target: 400  # 300-500 per context (education, healthcare, workplace)
+    per_context_min: 300
+    per_context_max: 500
+    per_site_target: 200  # Assuming 2 sites per context
+    diversity_requirements:
+      age_groups:
+        - "18-25"
+        - "26-40"
+        - "41-60"
+        - "60+"
+      gender_representation: "balanced"
+      ethnicity_representation: "diverse"
+      disability_inclusion: true
+      socioeconomic_diversity: true
+    retention_target: 0.80  # 80% completion rate
     
   # Alert thresholds
   alert_thresholds:
@@ -113,9 +198,24 @@ societal_pilots:
         - aggregate_reporting_only
         - voluntary_participation
   
-  # IRB and ethics compliance
+  # IRB and ethics compliance (Phase 20 next steps)
   compliance:
     irb_approval_required: true
+    irb_submission_timeline: "4-8 weeks initial review, 2-4 weeks revisions"
+    irb_documentation_required:
+      - study_protocol
+      - informed_consent_forms
+      - data_protection_plan
+      - recruitment_materials
+      - privacy_impact_assessment
+      - adverse_event_reporting_plan
+    regulatory_frameworks:
+      - "45 CFR 46 (Common Rule)"  # US federal policy
+      - "HIPAA"  # Healthcare Information Portability and Accountability Act
+      - "FERPA"  # Family Educational Rights and Privacy Act
+      - "GDPR"  # General Data Protection Regulation (EU)
+      - "local_regulations"  # Site-specific requirements
+    multi_site_coordination: "central_irb_preferred"  # or "individual_site_irbs"
     ethics_board_oversight: true
     informed_consent_required: true
     data_retention_days: 730  # 2 years
@@ -123,13 +223,85 @@ societal_pilots:
     right_to_withdraw: true
     professional_oversight_mandatory: true
   
-  # Crisis response
+  # Partner agreements (Phase 20 next steps)
+  partner_agreements:
+    required_elements:
+      - roles_and_responsibilities
+      - data_governance_framework
+      - intellectual_property_rights
+      - liability_and_insurance
+      - technical_integration_requirements
+      - performance_expectations
+      - termination_conditions
+    technical_integration:
+      - api_access_specifications
+      - system_compatibility_testing
+      - data_exchange_protocols
+      - security_requirements
+      - uptime_sla
+    legal_review_required: true
+    sites_per_context: 2  # Target: 2-3 sites per context
+    sites_per_context_min: 2
+    sites_per_context_max: 3
+  
+  # Pilot infrastructure deployment (Phase 20 next steps)
+  infrastructure:
+    cloud_providers:
+      - "AWS"  # Amazon Web Services (with Braket quantum integration)
+      - "Azure"  # Microsoft Azure (with Azure Quantum integration)
+      - "GCP"  # Google Cloud Platform
+    deployment_strategy: "multi_region_multi_cloud"
+    quantum_integration: true  # Integrate Phase 19 quantum processing
+    edge_deployment:
+      enabled: true
+      purpose: "low_latency_processing"
+      edge_locations: "pilot_site_proximity"
+    monitoring_stack:
+      - "Grafana"  # Visualization
+      - "Prometheus"  # Metrics collection
+      - "custom_analytics_dashboard"
+    crisis_escalation_system:
+      enabled: true
+      coverage: "24_7"
+      response_time_target_minutes: 5
+      professional_availability: "on_call_rotation"
+    data_storage:
+      encryption_at_rest: true
+      encryption_in_transit: true
+      privacy_preservation: "differential_privacy"
+      backup_frequency: "daily"
+      disaster_recovery: true
+    auto_scaling:
+      enabled: true
+      min_capacity: 100  # concurrent users
+      max_capacity: 5000  # concurrent users per deployment
+      scale_trigger: "cpu_memory_latency"
+  
+  # Crisis response (Phase 20 next steps)
   crisis_response:
     enabled: true
     professional_alert_enabled: true
     emergency_escalation_enabled: true
     response_time_target_minutes: 5
     on_call_coverage_24_7: true
+    professional_staffing:
+      therapists: "on_call_rotation"
+      clinicians: "24_7_availability"
+      counselors: "business_hours_plus_on_call"
+    escalation_tiers:
+      - site_professional
+      - clinical_supervisor  
+      - emergency_services
+    notification_channels:
+      - email
+      - sms
+      - pager
+      - dashboard_alert
+    response_protocols:
+      - immediate_assessment
+      - professional_notification
+      - participant_support
+      - documentation_and_followup
   
   # Phase 20 exit criteria
   exit_criteria:
@@ -144,11 +316,12 @@ societal_pilots:
     min_fairness_score: 0.88
     max_critical_incidents: 0
   
-  # Longitudinal tracking
+  # Longitudinal tracking (Phase 20 next steps)
   longitudinal:
     enabled: true
-    measurement_frequency_days: 7
+    measurement_frequency_days: 7  # Weekly check-ins
     baseline_required: true
+    deep_assessment_frequency: "monthly"
     outcome_metrics:
       - well_being_score
       - stress_level
@@ -157,6 +330,15 @@ societal_pilots:
       - academic_performance  # education only
       - treatment_adherence  # healthcare only
       - job_satisfaction  # workplace only
+    data_quality_assurance:
+      validation_checks: true
+      missing_data_handling: "imputation_or_exclusion"
+      outlier_detection: true
+    analysis_methods:
+      - "mixed_effects_models"  # Account for repeated measures
+      - "growth_curve_analysis"  # Longitudinal trajectories
+      - "intent_to_treat"  # Include all enrolled participants
+      - "per_protocol"  # Complete adherence subset
   
   # Data governance
   data_governance:
