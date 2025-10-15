@@ -142,16 +142,21 @@ class MultimodalFusion(keras.Model):
         
         # Apply gating
         if len(projected_embeddings) > 1:
-            # Compute attention weights
-            concat_for_gate = tf.concat(projected_embeddings, axis=-1)
-            gates = self.gate_dense(concat_for_gate)  # (batch, max_modalities)
+            # Stack embeddings for gating (batch, num_modalities, hidden_dim)
+            stacked_embeddings = tf.stack(projected_embeddings, axis=1)
+            
+            # Average pooling to get a summary for gate computation
+            avg_embedding = tf.reduce_mean(stacked_embeddings, axis=1)  # (batch, hidden_dim)
+            
+            # Compute gates based on the average embedding
+            all_gates = self.gate_dense(avg_embedding)  # (batch, max_modalities)
             
             # Apply gates to corresponding modalities
             # Use only the first len(projected_embeddings) gates
             gated_embeddings = []
             for i, emb in enumerate(projected_embeddings):
                 if i < self.max_modalities:
-                    gate = gates[:, i:i+1]
+                    gate = all_gates[:, i:i+1]
                     gated_embeddings.append(emb * gate)
                 else:
                     # If we have more modalities than gates, log warning and apply uniform gating
