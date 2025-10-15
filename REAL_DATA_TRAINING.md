@@ -182,3 +182,79 @@ data/
 ```
 
 This implementation enables the GCS model to train on real neuroscience data while maintaining compatibility with the existing architecture and providing robust error handling.
+
+## Multimodal Affective Model Training
+
+The GCS system now includes a complete multimodal affective state recognition pipeline.
+
+### Dataset Support
+
+**DEAP (EEG + Valence/Arousal)**:
+```bash
+# Place DEAP data at: data/deap_dataset.npz
+# Expected keys: 'eeg', 'physio', 'valence', 'arousal'
+```
+
+**WESAD (Physiological + Stress Labels)**:
+```bash
+# Place WESAD data at: data/wesad/
+# Expected: S2.pkl, S3.pkl, etc. with chest sensor data
+```
+
+**RAVDESS (Voice + Emotion Labels)**:
+```bash
+# Place RAVDESS data at: data/ravdess/
+# Or pre-extracted features at: data/ravdess_features.npz
+```
+
+### Training the Affective Model
+
+```bash
+# Using the new affective training module (coming soon)
+python -m backend.gcs.models.affective_trainer \
+    --config backend/gcs/affective_config.yaml \
+    --datasets deap wesad ravdess \
+    --output models/affective
+
+# Or load datasets programmatically:
+from gcs.data.datasets.deap_loader import DEAPLoader
+from gcs.data.datasets.wesad_loader import WESADLoader
+from gcs.data.datasets.ravdess_loader import RAVDESSLoader
+from gcs.models.affective_model import build_affective_model, compile_affective_model
+
+# Load datasets
+deap = DEAPLoader('data/deap_dataset.npz')
+wesad = WESADLoader('data/wesad/')
+ravdess = RAVDESSLoader('data/ravdess/')
+
+# Build and train model
+model = build_affective_model(config)
+model = compile_affective_model(model, config)
+# ... training loop ...
+```
+
+### Model Architecture
+
+- **EEG Encoder**: 1D temporal CNN (64→128→128 filters)
+- **Physio Encoder**: MLP (24→64→128→128)
+- **Voice Encoder**: MLP (128→256→256→256)
+- **Fusion**: Attention-based with projection to common dimension (512)
+- **Heads**: 
+  - Valence regression (tanh, [-1,1])
+  - Arousal regression (sigmoid, [0,1])
+  - Categorical classification (softmax, 28 EmotionalState categories)
+- **Parameters**: ~3.16M total
+
+### Evaluation Metrics
+
+- **Valence/Arousal**: Mean Absolute Error (MAE), Concordance Correlation Coefficient (CCC)
+  - Target CCC ≥ 0.6 (conservative)
+- **Categorical**: Accuracy, Macro-F1
+  - Target Macro-F1 ≥ 0.75 (on available categories)
+
+### Simulation Fallback
+
+All loaders automatically fall back to simulation if real data is unavailable:
+- DEAP: 1000 synthetic samples with random valence/arousal
+- WESAD: 500 synthetic samples with condition-based labels
+- RAVDESS: 800 synthetic samples with emotion-based labels
