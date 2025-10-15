@@ -54,36 +54,34 @@ class EEGEncoder(keras.Model):
         
         logging.info(f"EEG Encoder initialized with embedding_dim={embedding_dim}")
     
-    def _build_layers(self):
-        """Build encoder layers"""
         self.conv_layers = []
         self.bn_layers = []
         self.dropout_layers = []
         
-        # Temporal convolutional layers
-        for i, (filters, kernel_size) in enumerate(zip(self.temporal_filters, self.kernel_sizes)):
-            # Conv layer
-            conv = layers.Conv1D(
-                filters=filters,
-                kernel_size=kernel_size,
-                padding='same',
-                activation='relu',
-                name=f'eeg_conv_{i}'
-            )
-            self.conv_layers.append(conv)
+# Temporal convolutional layers
+for i, (filters, kernel_size) in enumerate(zip(self.temporal_filters, self.kernel_sizes)):
+    # Conv layer
+    conv = layers.Conv1D(
+        filters=filters,
+        kernel_size=kernel_size,
+        padding='same',
+        activation='relu',
+        name=f'eeg_conv_{i}'
+    )
+    self.conv_layers.append(conv)
             
-            # Batch normalization
-            bn = layers.BatchNormalization(name=f'eeg_bn_{i}')
-            self.bn_layers.append(bn)
+    # Batch normalization
+    bn = layers.BatchNormalization(name=f'eeg_bn_{i}')
+    self.bn_layers.append(bn)
             
-            # Dropout
-            dropout = layers.Dropout(self.dropout_rate, name=f'eeg_dropout_{i}')
-            self.dropout_layers.append(dropout)
+    # Dropout
+    dropout = layers.Dropout(self.dropout_rate, name=f'eeg_dropout_{i}')
+    self.dropout_layers.append(dropout)
             
-            # Max pooling
-            if i < len(self.temporal_filters) - 1:
-                pool = layers.MaxPooling1D(pool_size=2, name=f'eeg_pool_{i}')
-                self.conv_layers.append(pool)
+    # Max pooling
+    if i < len(self.temporal_filters) - 1:
+        pool = layers.MaxPooling1D(pool_size=2, name=f'eeg_pool_{i}')
+        self.conv_layers.append(pool)
         
         # Global pooling
         self.global_pool = layers.GlobalAveragePooling1D(name='eeg_global_pool')
@@ -115,15 +113,14 @@ class EEGEncoder(keras.Model):
         # Transpose to (batch, timesteps, channels) for Conv1D
         x = tf.transpose(x, [0, 2, 1])
         
-        # Apply convolutional layers
-        for i in range(len(self.temporal_filters)):
-            x = self.conv_layers[i * 2](x, training=training)  # Conv
-            x = self.bn_layers[i](x, training=training)
-            x = self.dropout_layers[i](x, training=training)
+       for i in range(len(self.temporal_filters)):
+    x = self.conv_layers[i * 2](x, training=training)  # Conv
+    x = self.bn_layers[i](x, training=training)
+    x = self.dropout_layers[i](x, training=training)
             
-            # Apply pooling if not last layer
-            if i < len(self.temporal_filters) - 1:
-                x = self.conv_layers[i * 2 + 1](x, training=training)  # Pool
+    # Apply pooling if not last layer
+    if i < len(self.temporal_filters) - 1:
+        x = self.conv_layers[i * 2 + 1](x, training=training)  # Pool
         
         # Global pooling
         x = self.global_pool(x)
