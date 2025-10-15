@@ -77,7 +77,10 @@ class MultimodalFusion(keras.Model):
         }
         
         # Gating mechanism for modality weighting
-        self.gate_dense = layers.Dense(4, activation='sigmoid', name='fusion_gate')
+        # Note: Gate size will be determined dynamically based on available modalities
+        # We create a gate layer that can handle up to 4 modalities
+        self.max_modalities = 4
+        self.gate_dense = layers.Dense(self.max_modalities, activation='sigmoid', name='fusion_gate')
         
         # Dense layers after fusion
         self.fusion_dense1 = layers.Dense(self.hidden_dim, activation='relu', name='fusion_dense1')
@@ -139,20 +142,26 @@ class MultimodalFusion(keras.Model):
         
         # Apply gating
         if len(projected_embeddings) > 1:
-            # Compute attention weights
-            concat_for_gate = tf.concat(projected_embeddings, axis=-1)
-            gates = self.gate_dense(concat_for_gate)  # (batch, 4)
+            # Stack embeddings for gating (batch, num_modalities, hidden_dim)
+            stacked_embeddings = tf.stack(projected_embeddings, axis=1)
+            
+            # Average pooling to get a summary for gate computation
+            avg_embedding = tf.reduce_mean(stacked_embeddings, axis=1)  # (batch, hidden_dim)
+            
+            # Compute gates based on the average embedding
+            all_gates = self.gate_dense(avg_embedding)  # (batch, max_modalities)
             
             # Apply gates to corresponding modalities
+            # Use only the first len(projected_embeddings) gates
             gated_embeddings = []
-            gate_idx = 0
-            for emb in projected_embeddings:
-                if gate_idx < gates.shape[-1]:
-                    gate = gates[:, gate_idx:gate_idx+1]
+            for i, emb in enumerate(projected_embeddings):
+                if i < self.max_modalities:
+                    gate = all_gates[:, i:i+1]
                     gated_embeddings.append(emb * gate)
                 else:
+                    # If we have more modalities than gates, log warning and apply uniform gating
+                    logging.warning(f"Modality {i} exceeds max_modalities ({self.max_modalities}), applying uniform gating")
                     gated_embeddings.append(emb)
-                gate_idx += 1
         else:
             gated_embeddings = projected_embeddings
         

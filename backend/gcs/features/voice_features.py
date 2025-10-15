@@ -256,10 +256,58 @@ class VoiceFeatureExtractor:
             # Zero crossing rate
             zcr = np.sum(np.abs(np.diff(np.sign(audio_signal)))) / (2 * len(audio_signal))
             
-            # Simplified pitch estimate (not accurate, just for feature completeness)
-            pitch_mean = 120.0  # Placeholder
-            pitch_std = 20.0
-            pitch_range = 50.0
+            # Improved pitch estimation using autocorrelation
+            frame_length = self.n_fft
+            hop_length = self.hop_length
+            n_frames = (len(audio_signal) - frame_length) // hop_length + 1
+            
+            pitches = []
+            min_f0 = 50  # Hz
+            max_f0 = 500  # Hz
+            min_lag = int(self.sampling_rate / max_f0)
+            max_lag = int(self.sampling_rate / min_f0)
+            
+            for i in range(n_frames):
+                start = i * hop_length
+                end = start + frame_length
+                frame = audio_signal[start:end]
+                frame = frame - np.mean(frame)
+                
+                if np.all(frame == 0):
+                    pitches.append(0.0)
+                    continue
+                
+                # Autocorrelation for pitch estimation
+                autocorr = np.correlate(frame, frame, mode='full')
+                autocorr = autocorr[autocorr.size // 2:]
+                
+                # Find the peak in the allowed lag range
+                if max_lag >= len(autocorr):
+                    max_lag = len(autocorr) - 1
+                
+                if min_lag < max_lag:
+                    peak_lag = np.argmax(autocorr[min_lag:max_lag]) + min_lag
+                    if autocorr[peak_lag] > 0:
+                        pitch = self.sampling_rate / peak_lag
+                    else:
+                        pitch = 0.0
+                else:
+                    pitch = 0.0
+                
+                pitches.append(pitch)
+            
+            pitches = np.array(pitches)
+            
+            # Remove zero (unvoiced) frames for statistics
+            voiced_pitches = pitches[pitches > 0]
+            if len(voiced_pitches) > 0:
+                pitch_mean = np.mean(voiced_pitches)
+                pitch_std = np.std(voiced_pitches)
+                pitch_range = np.max(voiced_pitches) - np.min(voiced_pitches)
+            else:
+                pitch_mean = 0.0
+                pitch_std = 0.0
+                pitch_range = 0.0
             
             return np.array([pitch_mean, pitch_std, pitch_range,
                            energy_mean, energy_std, zcr])
