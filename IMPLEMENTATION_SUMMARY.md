@@ -4,6 +4,17 @@
 
 Complete production-ready implementation of multimodal emotion recognition with empathy-aware serving for the GCS-v7-with-empathy brain-computer interface system.
 
+**This implementation powers the first two stages of the [GCS Empathy Progression](ROADMAP.md):**
+1. **Stage 1 - Emotion Recognition**: Multi-modal sensing and classification (F1 >0.87)
+2. **Stage 2 - Emotion Understanding**: Contextual analysis and individual baseline comparison
+
+**Complete Empathy Pipeline Integration:**
+- ✅ **Recognition & Understanding** (this implementation)
+- ✅ **Reaction, Advice, and Notification** (see `backend/gcs/empathy_engine.py`)
+- ✅ **End-to-End Flow**: Emotion sensing → Understanding → Empathetic response → Therapeutic guidance → Crisis protection
+
+For the complete empathy framework, see [docs/empathy_integration.md](docs/empathy_integration.md).
+
 ## What Was Built
 
 ### 1. Data Infrastructure ✅

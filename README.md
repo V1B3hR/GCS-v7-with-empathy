@@ -11,10 +11,19 @@ This project moves beyond simple command decoding. We are building a complete co
   
   Core Features
 The GCS is a full-stack, modular system built on a foundation of cutting-edge research and a safety-first design.
-🧠 The Neuro-Symbolic Core: At its heart is a state-of-the-art, zero-shot BCI (GCS_v3.1-Production). It uses a Graph Attention Network (GAT) on an anatomical brain scaffold to decode motor intent with 86.5% validated accuracy on unseen users.
-❤️ The Empathy Module: The system is augmented with a validated AffectiveStateClassifier that fuses multi-modal data—EEG (brain), HRV/GSR (body), and speech prosody (voice)—to achieve a deep, nuanced understanding of the user's emotional state (valence and arousal).
-🛡️ The Active Therapeutic Framework: The GCS is architected for closed-loop therapeutic action. All potential interventions are governed by the AI_Guardian and a strict Human-in-the-Loop (HITL) consent protocol, ensuring the user is always in control.
-🌱 The Living Architecture: The system is designed as a co-adaptive agent (Phase 10). It uses an Online Learning Module to learn from real-time user feedback, allowing it to continuously personalize and improve its understanding, creating a truly symbiotic partnership.
+
+🧠 **The Neuro-Symbolic Core**: At its heart is a state-of-the-art, zero-shot BCI (GCS_v3.1-Production). It uses a Graph Attention Network (GAT) on an anatomical brain scaffold to decode motor intent with 86.5% validated accuracy on unseen users.
+
+❤️ **The Empathy Progression Engine**: A complete five-stage empathy system that mirrors human emotional intelligence:
+  - **Emotion Recognition**: Multi-modal fusion (EEG, HRV, GSR, voice) achieving F1 >0.87
+  - **Emotion Understanding**: Contextual analysis with cultural adaptation and individual baselines
+  - **Empathetic Reaction**: Therapeutic response generation (CBT, DBT, mindfulness)
+  - **Advice & Guidance**: Evidence-based recommendations and skill-building support
+  - **Issue Notification**: Advanced crisis detection with 6-level severity classification and emergency escalation
+
+🛡️ **The Active Therapeutic Framework**: The GCS is architected for closed-loop therapeutic action. All potential interventions are governed by the AI_Guardian and a strict Human-in-the-Loop (HITL) consent protocol, ensuring the user is always in control.
+
+🌱 **The Living Architecture**: The system is designed as a co-adaptive agent (Phase 10). It uses an Online Learning Module to learn from real-time user feedback, allowing it to continuously personalize and improve its understanding, creating a truly symbiotic partnership.
   
   System Architecture
 The GCS is a full-stack application designed for modern, cloud-based development and deployment.
@@ -59,14 +68,31 @@ Code
 
 ## Development Roadmap
 
-The GCS development follows a comprehensive roadmap that integrates technical advancement with ethical framework implementation. See our detailed [Development Roadmap](ROADMAP.md) for complete project planning.
+The GCS development follows a comprehensive roadmap centered on creating truly empathetic AI through a clear progression: **Emotion Recognition → Understanding → Reaction → Advice → Issue Notification**. 
 
-### Current Focus: Empathy and Ethics Integration (Phase 6-10)
-**Hardware Integration**: Integration with real, physical hardware (e.g., OpenBCI, Polar H10) to move from simulation to live prototypes
-**Wireless BCI Implementation**: Full wireless connectivity with advanced security and privacy protection
-**Empathy Enhancement**: Advanced empathetic AI capabilities for psychological well-being support
-**UI/UX Refinement**: Continuously improve the Cognitive Dashboard to be more intuitive, transparent, and empowering
-**Therapeutic Applications**: Evidence-based therapeutic interventions with clinical validation
+📖 **[Quick Start: Empathy Progression Guide](EMPATHY_PROGRESSION_GUIDE.md)** - Complete overview of all 5 empathy stages  
+🗺️ **[Detailed Roadmap](ROADMAP.md)** - Full project planning and phase mapping
+
+### Empathy Vision: The Five-Stage Progression
+
+Our empathy framework follows a natural, human-like progression of emotional intelligence:
+
+1. **🎯 Emotion Recognition (COMPLETED)**: Multi-modal sensing of emotional states through EEG, heart rate variability, galvanic skin response, and voice analysis - achieving F1 >0.87 accuracy
+   
+2. **🧠 Emotion Understanding (COMPLETED)**: Deep contextual analysis considering individual baselines, cultural factors, personal history, and situational triggers
+   
+3. **❤️ Reaction Formulation (COMPLETED)**: Empathetic response generation with therapeutic interventions (CBT, DBT, mindfulness), personalized to individual preferences and cultural context
+   
+4. **💡 Advice & Guidance (COMPLETED)**: Evidence-based therapeutic recommendations, skill-building support, and well-being optimization strategies aligned with user goals
+   
+5. **🚨 Issue Notification (COMPLETED)**: Advanced crisis detection system with 6-level severity classification, automatic professional alerts, and emergency escalation protocols
+
+### Current Focus: Advanced Empathy Integration (Phases 16-22)
+### Current Focus: Advanced Empathy Integration (Phases 16-22)
+**Multi-User Emotional Intelligence**: Extending empathy capabilities to group interactions and shared emotional experiences
+**Advanced Cognitive Augmentation**: Memory scaffolding and cognitive load optimization with empathetic guidance
+**Collective Well-Being**: Societal-scale emotional intelligence and community mental health support
+**Global Therapeutic Deployment**: Scaling empathetic AI with formal verification and sustainability
 
 ## Research Integration
 This project actively integrates cutting-edge brain medicine research to enhance system capabilities.
