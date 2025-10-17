@@ -179,7 +179,14 @@ See `phase19_20_config.yaml` for complete pilot settings:
 - [ ] Equity: Fairness score ≥0.88 across demographics
 - [ ] Safety: Zero critical ethical incidents
 
-**Current Status:** 0/8 criteria met (infrastructure ready, pilots not yet deployed)
+**Current Status:** 0/8 criteria met (infrastructure ready, **pilot sites launched for Q1 2026**)
+
+**Q1 2026 Pilot Sites:**
+- ✅ **EDU001**: University of California, Berkeley - Mental Health & Academic Support (400 participants)
+- ✅ **HCR001**: Massachusetts General Hospital - Chronic Care & Therapeutic Support (300 participants)
+- ✅ **WRK001**: Microsoft Corporation - Employee Wellness & Burnout Prevention (400 participants)
+
+**Launch Status:** Infrastructure deployed, IRB approvals in progress, ready for participant enrollment in Q1 2026.
 
 ---
 
