@@ -1,284 +1,356 @@
 """
-EEG Feature Extraction
+Improved EEG feature extraction module.
 
-Extracts emotional markers from EEG signals:
-- Band power features (delta, theta, alpha, beta, gamma)
-- Asymmetry indices (frontal alpha asymmetry, etc.)
-- Spectral entropy
-- Optional connectivity features (coherence, PLV)
+Key improvements:
+- Robust Welch nperseg handling
+- Explicit asymmetry convention: asymmetry = log(left) - log(right)
+- Optional preprocessing: bandpass + notch
+- Channel name support and named asymmetry pairs
+- get_feature_names helper for interpretability
+- Safe PSD/spectral entropy handling and input validation
 """
+from typing import Dict, List, Optional, Tuple, Sequence, Union
 
+import logging
 import numpy as np
 from scipy import signal as sp_signal
 from scipy.stats import entropy
-from typing import Dict, List, Optional, Tuple
-import logging
+
+logger = logging.getLogger(__name__)
 
 
 class EEGFeatureExtractor:
-    """
-    Extract emotion-relevant features from EEG signals
-    
-    Input: EEG data as (channels, timesteps) or (nodes, timesteps) if source-localized
-    Output: Feature vector
-    """
-    
-    # Standard EEG frequency bands (Hz)
-    BANDS = {
+    DEFAULT_BANDS: Dict[str, Tuple[float, float]] = {
         'delta': (0.5, 4),
         'theta': (4, 8),
         'alpha': (8, 13),
         'beta': (13, 30),
-        'gamma': (30, 45)
+        'gamma': (30, 45),
     }
-    
-    def __init__(self, 
+
+    def __init__(self,
                  sampling_rate: int = 250,
                  extract_asymmetry: bool = True,
                  extract_connectivity: bool = False,
-                 channel_pairs_for_asymmetry: Optional[List[Tuple[int, int]]] = None):
+                 channel_pairs_for_asymmetry: Optional[List[Tuple[Union[int, str], Union[int, str]]]] = None,
+                 channel_names: Optional[Sequence[str]] = None,
+                 bands: Optional[Dict[str, Tuple[float, float]]] = None,
+                 do_preproc: bool = False,
+                 bp_low: float = 0.5,
+                 bp_high: float = 45.0,
+                 notch_freqs: Optional[Sequence[float]] = None):
         """
         Args:
-            sampling_rate: EEG sampling rate in Hz
-            extract_asymmetry: Whether to compute asymmetry features
-            extract_connectivity: Whether to compute connectivity features (expensive)
-            channel_pairs_for_asymmetry: List of (left, right) channel pairs for asymmetry
-                                         If None, uses default frontal pairs
+            sampling_rate: sampling frequency in Hz
+            extract_asymmetry: whether to compute asymmetry features
+            extract_connectivity: whether to compute connectivity features (simple correlation summary)
+            channel_pairs_for_asymmetry: list of (left, right) pairs; elements can be integer indices or channel names
+            channel_names: optional sequence of channel names (maps indices -> names)
+            bands: override default frequency bands
+            do_preproc: whether to apply simple preprocessing (bandpass + optional notch) before features
+            bp_low, bp_high: bandpass limits in Hz for preprocessing
+            notch_freqs: iterable of frequencies to notch (e.g., [50.0] or [50.0, 100.0])
         """
-        self.sampling_rate = sampling_rate
-        self.extract_asymmetry = extract_asymmetry
-        self.extract_connectivity = extract_connectivity
-        
-        # Default to frontal alpha asymmetry (channels 0-1 as proxy)
+        self.sampling_rate = int(sampling_rate)
+        self.extract_asymmetry = bool(extract_asymmetry)
+        self.extract_connectivity = bool(extract_connectivity)
+        self.BANDS = dict(bands) if bands is not None else dict(self.DEFAULT_BANDS)
+        self.channel_names = list(channel_names) if channel_names is not None else None
+        self.do_preproc = bool(do_preproc)
+        self.bp_low = float(bp_low)
+        self.bp_high = float(bp_high)
+        self.notch_freqs = list(notch_freqs) if notch_freqs is not None else []
+
+        # store asymmetry pairs in raw form (may contain names or indices)
         if channel_pairs_for_asymmetry is None:
-            self.asymmetry_pairs = [(0, 1), (2, 3)]  # Simple left-right pairs
+            # default simple placeholder pairs (indices) - adapt to your montage
+            self.asymmetry_pairs = [(0, 1), (2, 3)]
         else:
-            self.asymmetry_pairs = channel_pairs_for_asymmetry
-    
+            self.asymmetry_pairs = list(channel_pairs_for_asymmetry)
+
+    # Public API
     def extract_features(self, eeg_data: np.ndarray) -> np.ndarray:
         """
-        Extract comprehensive EEG features
-        
-        Args:
-            eeg_data: EEG signal (channels, timesteps) or (nodes, timesteps)
-        
+        Extract features from single EEG recording (channels, timesteps).
+
         Returns:
-            Feature vector as 1D array
+            flattened 1D numpy array of features
         """
-        features = []
-        
-        # 1. Band power features
-        band_powers = self.extract_band_powers(eeg_data)
-        features.append(band_powers.flatten())
-        
-        # 2. Asymmetry features
-        if self.extract_asymmetry:
-            asymmetry_features = self.extract_asymmetry_features(eeg_data)
-            features.append(asymmetry_features)
-        
-        # 3. Spectral entropy
-        spectral_entropy = self.extract_spectral_entropy(eeg_data)
-        features.append(spectral_entropy)
-        
-        # 4. Statistical features
+        eeg_data = np.asarray(eeg_data, dtype=float)
+        if eeg_data.ndim != 2:
+            raise ValueError("eeg_data must be 2D array of shape (channels, timesteps)")
+
+        if self.do_preproc:
+            eeg_data = self._preprocess(eeg_data)
+
+        n_channels, _ = eeg_data.shape
+        # validate channel-name mapping length if provided
+        if self.channel_names is not None and len(self.channel_names) != n_channels:
+            logger.warning("channel_names length (%d) doesn't match data channels (%d). Ignoring names.",
+                           len(self.channel_names), n_channels)
+            self.channel_names = None
+
+        # band powers
+        band_powers = self.extract_band_powers(eeg_data)  # shape (n_channels, n_bands)
+
+        features = [band_powers.flatten()]
+
+        # asymmetry features (log(left) - log(right) convention)
+        if self.extract_asymmetry and len(self.asymmetry_pairs) > 0:
+            asym = self.extract_asymmetry_features_from_bandpowers(band_powers)
+            features.append(asym)
+
+        # spectral entropy
+        ent = self.extract_spectral_entropy(eeg_data)
+        features.append(ent)
+
+        # statistical features
         stats = self.extract_statistical_features(eeg_data)
         features.append(stats)
-        
-        # 5. Connectivity features (optional, expensive)
+
+        # connectivity (simple summary)
         if self.extract_connectivity:
-            connectivity = self.extract_connectivity_features(eeg_data)
-            features.append(connectivity)
-        
-        # Concatenate all features
-        return np.concatenate(features)
-    
+            conn = self.extract_connectivity_features(eeg_data)
+            features.append(conn)
+
+        return np.concatenate([np.asarray(x).ravel() for x in features])
+
     def extract_band_powers(self, eeg_data: np.ndarray) -> np.ndarray:
         """
-        Compute power in each frequency band for each channel
-        
-        Returns:
-            Array of shape (n_channels, n_bands)
+        Compute relative band power for each channel and band.
+        Returns array shape (n_channels, n_bands) with values normalized across the defined bands.
         """
-        n_channels = eeg_data.shape[0]
-        n_bands = len(self.BANDS)
-        band_powers = np.zeros((n_channels, n_bands))
-        
-        for ch_idx in range(n_channels):
-            channel_data = eeg_data[ch_idx, :]
-            
-            # Compute power spectral density using Welch's method
+        n_channels, n_time = eeg_data.shape
+        band_names = list(self.BANDS.keys())
+        n_bands = len(band_names)
+        band_powers = np.zeros((n_channels, n_bands), dtype=float)
+
+        for ch in range(n_channels):
+            x = eeg_data[ch, :]
+            # welch nperseg must be 1..len(x), prefer 256 but don't exceed len(x)
+            nperseg = min(256, max(1, len(x)))
             try:
-                frequencies, psd = sp_signal.welch(
-                    channel_data, 
-                    fs=self.sampling_rate,
-                    nperseg=min(256, len(channel_data) // 2)
-                )
-                
-                # Compute power in each band
-                for band_idx, (band_name, (low_freq, high_freq)) in enumerate(self.BANDS.items()):
-                    band_mask = (frequencies >= low_freq) & (frequencies <= high_freq)
-                    if np.any(band_mask):
-                        band_powers[ch_idx, band_idx] = np.trapz(psd[band_mask], frequencies[band_mask])
-                    else:
-                        band_powers[ch_idx, band_idx] = 0
-                        
+                freqs, psd = sp_signal.welch(x, fs=self.sampling_rate, nperseg=nperseg)
             except Exception as e:
-                logging.warning(f"Error computing band powers for channel {ch_idx}: {e}")
-                band_powers[ch_idx, :] = 0
-        
-        # Normalize by total power
-        total_power = np.sum(band_powers, axis=1, keepdims=True) + 1e-8
-        band_powers = band_powers / total_power
-        
+                logger.warning("PSD computation failed for channel %d: %s", ch, e)
+                continue
+
+            for b_idx, bname in enumerate(band_names):
+                low, high = self.BANDS[bname]
+                mask = (freqs >= low) & (freqs <= high)
+                if np.any(mask):
+                    band_powers[ch, b_idx] = np.trapz(psd[mask], freqs[mask])
+                else:
+                    band_powers[ch, b_idx] = 0.0
+
+        # Normalize by sum across the selected bands per channel -> relative band power
+        eps = 1e-12
+        total = np.sum(band_powers, axis=1, keepdims=True)
+        band_powers = band_powers / (total + eps)
         return band_powers
-    
-    def extract_asymmetry_features(self, eeg_data: np.ndarray) -> np.ndarray:
+
+    def extract_asymmetry_features_from_bandpowers(self, band_powers: np.ndarray) -> np.ndarray:
         """
-        Compute asymmetry indices between channel pairs
-        
-        Frontal alpha asymmetry (right - left) is associated with approach/withdrawal motivation
-        Positive asymmetry = left activation > right activation
-        
-        Returns:
-            Array of asymmetry values for each pair and band
+        Build asymmetry features from band powers.
+        Convention: asymmetry = log(left) - log(right), positive means greater left activation.
+        Asymmetry pairs may be provided as indices or names.
         """
-        band_powers = self.extract_band_powers(eeg_data)
-        asymmetries = []
-        
-        for left_ch, right_ch in self.asymmetry_pairs:
-            if left_ch < band_powers.shape[0] and right_ch < band_powers.shape[0]:
-                # Asymmetry = log(right) - log(left)
-                for band_idx in range(band_powers.shape[1]):
-                    left_power = band_powers[left_ch, band_idx] + 1e-8
-                    right_power = band_powers[right_ch, band_idx] + 1e-8
-                    asym = np.log(right_power) - np.log(left_power)
-                    asymmetries.append(asym)
-        
-        return np.array(asymmetries) if asymmetries else np.zeros(1)
-    
+        n_channels = band_powers.shape[0]
+        n_bands = band_powers.shape[1]
+        resolved_pairs = []
+        for left, right in self.asymmetry_pairs:
+            left_idx = self._resolve_channel_index(left, n_channels)
+            right_idx = self._resolve_channel_index(right, n_channels)
+            if left_idx is None or right_idx is None:
+                logger.warning("Could not resolve asymmetry pair (%s, %s); using zeros.", left, right)
+                resolved_pairs.append((None, None))
+            else:
+                resolved_pairs.append((left_idx, right_idx))
+
+        eps = 1e-12
+        asym_list = []
+        for left_idx, right_idx in resolved_pairs:
+            if left_idx is None or right_idx is None:
+                asym_list.append(np.zeros(n_bands))
+            else:
+                left_power = band_powers[left_idx, :] + eps
+                right_power = band_powers[right_idx, :] + eps
+                asym_list.append(np.log(left_power) - np.log(right_power))
+        if len(asym_list) == 0:
+            return np.zeros(0, dtype=float)
+        return np.concatenate(asym_list)
+
     def extract_spectral_entropy(self, eeg_data: np.ndarray) -> np.ndarray:
         """
-        Compute spectral entropy for each channel
-        
-        Spectral entropy measures the complexity/regularity of the signal
-        Higher entropy = more complex, less predictable
-        
-        Returns:
-            Array of entropy values (one per channel)
+        Compute Shannon spectral entropy per channel using Welch PSD.
+        Returns array of length n_channels.
         """
-        n_channels = eeg_data.shape[0]
-        entropies = np.zeros(n_channels)
-        
-        for ch_idx in range(n_channels):
+        n_channels, _ = eeg_data.shape
+        entropies = np.zeros(n_channels, dtype=float)
+        eps = 1e-12
+
+        for ch in range(n_channels):
+            x = eeg_data[ch, :]
+            nperseg = min(256, max(1, len(x)))
             try:
-                frequencies, psd = sp_signal.welch(
-                    eeg_data[ch_idx, :],
-                    fs=self.sampling_rate,
-                    nperseg=min(256, eeg_data.shape[1] // 2)
-                )
-                
-                # Normalize PSD to probability distribution
-                psd_norm = psd / (np.sum(psd) + 1e-8)
-                
-                # Compute Shannon entropy
-                entropies[ch_idx] = entropy(psd_norm + 1e-8)
-                
+                _, psd = sp_signal.welch(x, fs=self.sampling_rate, nperseg=nperseg)
             except Exception as e:
-                logging.warning(f"Error computing spectral entropy for channel {ch_idx}: {e}")
-                entropies[ch_idx] = 0
-        
+                logger.warning("Spectral entropy PSD failed on channel %d: %s", ch, e)
+                entropies[ch] = 0.0
+                continue
+            s = np.sum(psd)
+            if s <= 0 or np.all(psd == 0):
+                entropies[ch] = 0.0
+            else:
+                p = psd / (s + eps)
+                entropies[ch] = entropy(p + eps)  # natural log base
         return entropies
-    
+
     def extract_statistical_features(self, eeg_data: np.ndarray) -> np.ndarray:
         """
-        Extract basic statistical features
-        
-        Returns:
-            Array of statistical features
+        Returns concatenation of per-channel mean,std,min,max and two global stats: mean,std
+        Length: 4*n_channels + 2
         """
-        features = []
-        
-        # Per-channel statistics
-        features.append(np.mean(eeg_data, axis=1))  # Mean per channel
-        features.append(np.std(eeg_data, axis=1))   # Std per channel
-        features.append(np.min(eeg_data, axis=1))   # Min per channel
-        features.append(np.max(eeg_data, axis=1))   # Max per channel
-        
-        # Global statistics
-        features.append([np.mean(eeg_data)])        # Global mean
-        features.append([np.std(eeg_data)])         # Global std
-        
-        return np.concatenate(features)
-    
+        means = np.mean(eeg_data, axis=1)
+        stds = np.std(eeg_data, axis=1)
+        mins = np.min(eeg_data, axis=1)
+        maxs = np.max(eeg_data, axis=1)
+        global_mean = np.mean(eeg_data)
+        global_std = np.std(eeg_data)
+        return np.concatenate([means, stds, mins, maxs, np.array([global_mean, global_std])])
+
     def extract_connectivity_features(self, eeg_data: np.ndarray) -> np.ndarray:
         """
-        Extract simple connectivity features (coherence, correlation)
-        
-        Returns:
-            Array of connectivity features (simplified)
+        Simple connectivity summary using Pearson correlation.
+        Returns [mean, std, max, min] over upper-triangle correlation values.
         """
-        n_channels = eeg_data.shape[0]
-        
-        # Compute pairwise correlations (simplified connectivity)
-        correlation_matrix = np.corrcoef(eeg_data)
-        
-        # Extract upper triangle (excluding diagonal)
-        upper_triangle_indices = np.triu_indices(n_channels, k=1)
-        correlations = correlation_matrix[upper_triangle_indices]
-        
-        # Summary statistics of connectivity
-        connectivity_features = [
-            np.mean(correlations),
-            np.std(correlations),
-            np.max(correlations),
-            np.min(correlations)
-        ]
-        
-        return np.array(connectivity_features)
-    
+        n_channels, _ = eeg_data.shape
+        if n_channels < 2:
+            return np.array([0.0, 0.0, 0.0, 0.0])
+        try:
+            corr = np.corrcoef(eeg_data)
+        except Exception as e:
+            logger.warning("Correlation matrix failed: %s", e)
+            return np.array([0.0, 0.0, 0.0, 0.0])
+        iu = np.triu_indices(n_channels, k=1)
+        vals = corr[iu]
+        if vals.size == 0:
+            return np.array([0.0, 0.0, 0.0, 0.0])
+        return np.array([np.nanmean(vals), np.nanstd(vals), np.nanmax(vals), np.nanmin(vals)])
+
+    # Helpers
+    def _resolve_channel_index(self, ch: Union[int, str], n_channels: int) -> Optional[int]:
+        """Resolve either int index or channel-name to index."""
+        if isinstance(ch, int):
+            if 0 <= ch < n_channels:
+                return ch
+            return None
+        if isinstance(ch, str):
+            if self.channel_names is None:
+                return None
+            try:
+                return self.channel_names.index(ch)
+            except ValueError:
+                return None
+        return None
+
+    def _preprocess(self, eeg_data: np.ndarray) -> np.ndarray:
+        """
+        Simple preprocessing: bandpass between bp_low and bp_high using 4th order butterworth
+        and optional notch filtering for provided notch_freqs (IIR notch).
+        """
+        data = eeg_data.copy()
+        nyq = 0.5 * self.sampling_rate
+        low = max(0.0, self.bp_low / nyq)
+        high = min(0.999, self.bp_high / nyq)
+        if low < high:
+            b, a = sp_signal.butter(N=4, Wn=[low, high], btype='band')
+            data = sp_signal.filtfilt(b, a, data, axis=1)
+        else:
+            logger.warning("Invalid bandpass settings, skipping bandpass: low=%f high=%f", self.bp_low, self.bp_high)
+
+        for f0 in self.notch_freqs:
+            # design notch (IIR) at f0
+            q = 30.0
+            w0 = f0 / nyq
+            if 0 < w0 < 1:
+                b, a = sp_signal.iirnotch(w0, q)
+                data = sp_signal.filtfilt(b, a, data, axis=1)
+            else:
+                logger.warning("Skipping notch at %s Hz (out of range for sampling rate %d)", f0, self.sampling_rate)
+        return data
+
     def get_feature_dimension(self, n_channels: int) -> int:
-        """Calculate expected feature dimension"""
-        # Band powers: n_channels * 5 bands
-        dim = n_channels * 5
-        
-        # Asymmetry: n_pairs * 5 bands
+        """Return expected feature length for given channel count."""
+        n_bands = len(self.BANDS)
+        dim = n_channels * n_bands
         if self.extract_asymmetry:
-            dim += len(self.asymmetry_pairs) * 5
-        
-        # Spectral entropy: n_channels
-        dim += n_channels
-        
-        # Statistical: 4 * n_channels + 2
-        dim += 4 * n_channels + 2
-        
-        # Connectivity: 4 features
+            dim += len(self.asymmetry_pairs) * n_bands
+        dim += n_channels  # spectral entropy
+        dim += 4 * n_channels + 2  # statistical
         if self.extract_connectivity:
             dim += 4
-        
         return dim
+
+    def get_feature_names(self, n_channels: int) -> List[str]:
+        """
+        Produce human-readable feature names matching extract_features order.
+        Use channel_names if provided.
+        """
+        band_names = list(self.BANDS.keys())
+        ch_names = self.channel_names if self.channel_names is not None else [f"ch{idx}" for idx in range(n_channels)]
+        names = []
+
+        # band powers
+        for ch in range(n_channels):
+            for b in band_names:
+                names.append(f"{ch_names[ch]}_band_{b}_relpower")
+
+        # asymmetry
+        if self.extract_asymmetry:
+            for left, right in self.asymmetry_pairs:
+                left_label = left if isinstance(left, str) else (ch_names[left] if isinstance(left, int) and 0 <= left < n_channels else str(left))
+                right_label = right if isinstance(right, str) else (ch_names[right] if isinstance(right, int) and 0 <= right < n_channels else str(right))
+                for b in band_names:
+                    names.append(f"asym_{left_label}_vs_{right_label}_band_{b}_logdiff")
+
+        # spectral entropy
+        for ch in range(n_channels):
+            names.append(f"{ch_names[ch]}_spectral_entropy")
+
+        # statistical per channel
+        for ch in range(n_channels):
+            names.append(f"{ch_names[ch]}_mean")
+        for ch in range(n_channels):
+            names.append(f"{ch_names[ch]}_std")
+        for ch in range(n_channels):
+            names.append(f"{ch_names[ch]}_min")
+        for ch in range(n_channels):
+            names.append(f"{ch_names[ch]}_max")
+
+        # global stats
+        names.append("global_mean")
+        names.append("global_std")
+
+        # connectivity
+        if self.extract_connectivity:
+            names += ["conn_mean", "conn_std", "conn_max", "conn_min"]
+
+        return names
 
 
 def extract_eeg_features_batch(eeg_batch: np.ndarray,
                                sampling_rate: int = 250,
                                **kwargs) -> np.ndarray:
     """
-    Convenience function to extract features from a batch of EEG data
-    
-    Args:
-        eeg_batch: Batch of EEG data (batch, channels, timesteps)
-        sampling_rate: Sampling rate
-        **kwargs: Additional arguments for EEGFeatureExtractor
-    
-    Returns:
-        Feature matrix (batch, features)
+    Batch convenience: eeg_batch shape (batch, channels, timesteps)
+    Returns features shape (batch, n_features)
     """
+    eeg_batch = np.asarray(eeg_batch)
+    if eeg_batch.ndim != 3:
+        raise ValueError("eeg_batch must be 3D array (batch, channels, timesteps)")
     extractor = EEGFeatureExtractor(sampling_rate=sampling_rate, **kwargs)
-    
-    batch_size = eeg_batch.shape[0]
-    feature_list = []
-    
-    for i in range(batch_size):
-        features = extractor.extract_features(eeg_batch[i])
-        feature_list.append(features)
-    
-    return np.stack(feature_list)
+    features = []
+    for i in range(eeg_batch.shape[0]):
+        features.append(extractor.extract_features(eeg_batch[i]))
+    return np.stack(features)
