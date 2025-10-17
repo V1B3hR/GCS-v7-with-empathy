@@ -358,6 +358,8 @@ class Phase19Benchmarks:
                 return float(obj)
             elif isinstance(obj, np.integer):
                 return int(obj)
+            elif isinstance(obj, (np.bool_, bool)):
+                return bool(obj)
             elif isinstance(obj, dict):
                 return {k: convert_to_native(v) for k, v in obj.items()}
             elif isinstance(obj, list):
