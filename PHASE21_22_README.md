@@ -230,7 +230,7 @@ python -m unittest discover -s tests -p "test_phase2*.py"
 
 ```bash
 # Demonstrate both phases
-python phase21_22_demo.py
+python src/demo/phase21_22_demo.py
 ```
 
 ### Check Configuration
@@ -265,7 +265,7 @@ See `phase21_22_config.yaml` for complete configuration options:
 
 - **ROADMAP.md**: Comprehensive Phase 21-22 specifications (Section 6.5-6.6)
 - **phase21_22_config.yaml**: Configuration template
-- **phase21_22_demo.py**: Working demonstration script
+- **src/demo/phase21_22_demo.py**: Working demonstration script
 - **backend/gcs/verification_framework.py**: Phase 21 implementation
 - **backend/gcs/sustainability_framework.py**: Phase 22 implementation
 
@@ -342,7 +342,7 @@ For questions or issues:
 - GitHub Issues: [GCS-v7-with-empathy](https://github.com/V1B3hR/GCS-v7-with-empathy)
 - Documentation: See ROADMAP.md Section 6 (Phases 21-22)
 - Tests: backend/gcs/tests/test_phase21_verification.py, test_phase22_sustainability.py
-- Demo: phase21_22_demo.py
+- Demo: src/demo/phase21_22_demo.py
 
 ---
 

@@ -46,7 +46,7 @@ Provide comprehensive TLA+ installation guide to achieve 90%+ verification cover
 ### Validation
 
 ```bash
-$ python3 validate_phases_19_22.py
+$ python3 src/demo/validate_phases_19_22.py
 TLA+ Available: ✗ No (install required)
 Z3 Available: ✓ Yes
 Phase 21 Status: ✗ VERIFICATION PENDING (10% coverage, target: ≥90%)

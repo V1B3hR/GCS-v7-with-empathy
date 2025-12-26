@@ -268,7 +268,7 @@ All Phase 19-22 frameworks are now **COMPLETE** and **VALIDATED**. The system is
 
 Run comprehensive validation:
 ```bash
-python3 validate_phases_19_22.py
+python3 src/demo/validate_phases_19_22.py
 ```
 
 **Current Results** (2025-10-17):

@@ -47,10 +47,10 @@
 
 ## 🧪 Validation
 
-**Validation Script**: `validate_phases_19_22.py`
+**Validation Script**: `src/demo/validate_phases_19_22.py`
 
 ```bash
-python validate_phases_19_22.py
+python src/demo/validate_phases_19_22.py
 ```
 
 **Test Results**: 45/45 tests passing (100%)
