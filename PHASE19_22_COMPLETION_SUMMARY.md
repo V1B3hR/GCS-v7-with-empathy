@@ -211,7 +211,7 @@ All phases have comprehensive test suites with full coverage:
 
 ```bash
 # Run comprehensive validation
-python3 validate_phases_19_22.py
+python3 src/demo/validate_phases_19_22.py
 
 # Individual phase tests
 python3 -m pytest backend/gcs/tests/test_phase19_quantum.py

@@ -27,7 +27,7 @@ alias tlc='java -cp tla2tools.jar tlc2.TLC'
 
 **Validation**:
 ```bash
-python3 validate_phases_19_22.py
+python3 src/demo/validate_phases_19_22.py
 # Should show Phase 21: ✓ COMPLETE with 90%+ coverage
 ```
 
@@ -148,7 +148,7 @@ python3 validate_phases_19_22.py
 
 ```bash
 # Run comprehensive validation
-python3 validate_phases_19_22.py
+python3 src/demo/validate_phases_19_22.py
 
 # Test specific phases
 python3 backend/gcs/tests/test_phase19_quantum.py
@@ -157,8 +157,8 @@ python3 backend/gcs/tests/test_phase21_verification.py
 python3 backend/gcs/tests/test_phase22_sustainability.py
 
 # Run phase demonstrations
-python3 phase19_20_demo.py
-python3 phase21_22_demo.py
+python3 src/demo/phase19_20_demo.py
+python3 src/demo/phase21_22_demo.py
 ```
 
 ---

@@ -24,7 +24,7 @@ from pathlib import Path
 from datetime import datetime
 
 # Add backend to path
-sys.path.insert(0, str(Path(__file__).parent / "backend" / "gcs"))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / "backend" / "gcs"))
 
 from verification_framework import (
     VerificationFramework,

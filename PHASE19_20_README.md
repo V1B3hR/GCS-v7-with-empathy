@@ -210,7 +210,7 @@ python -m unittest discover tests
 
 ```bash
 # Demonstrate both phases
-python phase19_20_demo.py
+python src/demo/phase19_20_demo.py
 ```
 
 ### Check Configuration
@@ -226,7 +226,7 @@ cat phase19_20_config.yaml
 - **EMPATHY_PROGRESSION_GUIDE.md**: Empathy framework integration
 - **IMPLEMENTATION_SUMMARY.md**: Technical implementation details
 - **phase19_20_config.yaml**: Configuration template
-- **phase19_20_demo.py**: Working demonstration script
+- **src/demo/phase19_20_demo.py**: Working demonstration script
 
 ## Next Steps
 

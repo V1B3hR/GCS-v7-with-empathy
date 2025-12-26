@@ -15,7 +15,7 @@ import time
 from unittest.mock import Mock
 
 # Add the gcs module path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'backend'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '../..', 'backend'))
 
 from gcs.human_ai_collaboration import (
     HumanAICollaborationFramework, CollaborationContext, 

@@ -193,7 +193,7 @@ This guide provides a complete overview of the GCS empathy progression system. U
 - **Frontend Visualization**: `frontend/src/App.js`
 
 ### Demonstrations
-- **[empathy_demo.py](empathy_demo.py)**: Complete empathy system demonstration
+- **[empathy_demo.py](src/demo/empathy_demo.py)**: Complete empathy system demonstration
 - **[backend/demonstrate_ethics.py](backend/demonstrate_ethics.py)**: Ethics framework demonstration
 
 ---
@@ -229,7 +229,7 @@ Start with [ROADMAP.md](ROADMAP.md) Section 4.5 to understand the complete empat
 Read [docs/empathy_integration.md](docs/empathy_integration.md) for detailed technical documentation of each stage.
 
 ### 3. See It in Action
-Run `python empathy_demo.py` to see the complete empathy system in operation.
+Run `python src/demo/empathy_demo.py` to see the complete empathy system in operation.
 
 ### 4. Integrate Into Your Work
 Use the code examples in `backend/gcs/empathy_engine.py` to integrate empathy capabilities into your application.

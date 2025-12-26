@@ -33,7 +33,7 @@ Implement the next steps as specified in the ROADMAP.md file to advance the GCS 
 - 1,100 total participants across education, healthcare, workplace contexts
 
 **Files Changed**:
-- `validate_phases_19_22.py` - Added FERPA_001 and GDPR_001 approvals
+- `src/demo/validate_phases_19_22.py` - Added FERPA_001 and GDPR_001 approvals
 
 ---
 

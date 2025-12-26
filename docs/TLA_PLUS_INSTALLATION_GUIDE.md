@@ -124,7 +124,7 @@ tlc -help
 cd /path/to/GCS-v7-with-empathy
 
 # Run Phase 21 validation
-python3 validate_phases_19_22.py
+python3 src/demo/validate_phases_19_22.py
 
 # Expected output:
 # Phase 21 Status: ✓ COMPLETE
@@ -180,7 +180,7 @@ done
 python3 backend/gcs/phase21_formal_tools.py
 
 # Run complete Phase 19-22 validation
-python3 validate_phases_19_22.py
+python3 src/demo/validate_phases_19_22.py
 ```
 
 ## Troubleshooting
@@ -209,7 +209,7 @@ python3 validate_phases_19_22.py
 
 1. **Verify Installation**
    ```bash
-   python3 validate_phases_19_22.py
+   python3 src/demo/validate_phases_19_22.py
    ```
    Expected: Phase 21 shows ✓ COMPLETE with 90%+ coverage
 
