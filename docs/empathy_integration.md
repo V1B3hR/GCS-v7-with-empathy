@@ -651,7 +651,7 @@ def _generate_styled_response(self, prompt: str, context: Dict[str, Any]) -> str
 
 **Implementation Files:**
 - `backend/gcs/empathy_engine.py`: Therapeutic recommendation system
-- `empathy_demo.py`: Demonstrates effectiveness measurement
+- `src/demo/empathy_demo.py`: Demonstrates effectiveness measurement
 - `docs/empathy_integration.md`: Therapeutic framework documentation
 
 **Technical Capabilities:**

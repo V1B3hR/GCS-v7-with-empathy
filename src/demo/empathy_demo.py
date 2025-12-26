@@ -9,7 +9,7 @@ import numpy as np
 from datetime import datetime
 
 # Add backend to path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 
 from backend.gcs.empathy_engine import (
     EmotionalState,
@@ -36,8 +36,9 @@ def demonstrate_empathy_enhancements():
     print("=" * 60)
     print()
     
-    # Load configuration
-    config = load_config('config.yaml')
+    # Load configuration (config.yaml is in repository root)
+    config_path = os.path.join(os.path.dirname(__file__), '../..', 'config.yaml')
+    config = load_config(config_path)
     
     # Create empathy-aware classifier
     mock_base_model = create_mock_base_model()

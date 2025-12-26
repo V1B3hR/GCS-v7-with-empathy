@@ -16,7 +16,7 @@ import numpy as np
 from datetime import datetime, timedelta
 
 # Add backend to path
-sys.path.insert(0, str(Path(__file__).parent / "backend" / "gcs"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "backend" / "gcs"))
 
 from quantum_processing import (
     QuantumEmotionProcessor,

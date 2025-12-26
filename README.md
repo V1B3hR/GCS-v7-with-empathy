@@ -2,7 +2,7 @@
 BCI with empathy and strong safety measures
 Grand Council Sentient (GCS)
 ![alt text](https://img.shields.io/badge/build-passing-brightgreen)
-
+![alt text](https://img.shields.io/badge/license-MIT-blue)
 ![alt text](https://img.shields.io/badge/version-7.0-blue)
 An Empathetic, Co-Adaptive, and Therapeutic Brain-Computer Interface.
 
@@ -110,10 +110,12 @@ This project actively integrates cutting-edge brain medicine research to enhance
 
 ## Technical Documentation
 
+<!-- NOTE: Consider consolidating the numerous documentation files in this repository for better organization and maintainability -->
+
 ### Core Architecture
 - **[BRAIN_MEDICINE_ANALYSIS.md](BRAIN_MEDICINE_ANALYSIS.md)**: Comprehensive analysis of how brain medicine research benefits each GCS module
 - **[RESEARCH_MAPPING.md](RESEARCH_MAPPING.md)**: Detailed mapping of research areas to system components  
-- **[research_analyzer.py](research_analyzer.py)**: Tool for systematically analyzing research articles for relevance to GCS modules
+- **[research_analyzer.py](src/demo/research_analyzer.py)**: Tool for systematically analyzing research articles for relevance to GCS modules
 
 ### Implementation Specifications
 - **[Wireless BCI Integration](docs/wireless_bci_spec.md)**: Technical specifications for wireless brain-computer interface protocols
