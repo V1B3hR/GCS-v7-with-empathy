@@ -1,3 +1,5 @@
+[pełny plik – ze wszystkimi nowościami na temat codziennej empatii dodanymi na stałe]
+
 """
 Complete Enhanced Empathy Engine for GCS-v7 with OpenBCI Integration
 Single-file implementation ready for production deployment
@@ -16,9 +18,10 @@ Advanced Features:
 - Complete session management and data export
 - Optional Prometheus metrics for observability
 - Config via environment (Pydantic optional)
+- EVERYDAY EMPATHY: supportive messages even in non-crisis states !
 
 Author: Enhanced for GCS-v7 Integration
-Date: 2025
+Date: 2026
 """
 
 import logging
@@ -226,6 +229,7 @@ class EmotionPrediction:
     crisis_level: CrisisLevel = CrisisLevel.NONE
     crisis_risk_score: float = 0.0
     timestamp: datetime = field(default_factory=datetime.now)
+    empathic_message: Optional[str] = None  # NEW FIELD
 
 
 @dataclass
@@ -239,6 +243,7 @@ class UserProfile:
     calibration_completed: bool = False
     session_start: datetime = field(default_factory=datetime.now)
     emotion_history: deque = field(default_factory=lambda: deque(maxlen=100))
+    liked_activities: List[str] = field(default_factory=lambda: ["posłuchać muzyki", "obejrzeć zabawny filmik", "przypomnieć sobie najlepsze momenty tygodnia"])  # przykłady
 
 
 # ============================================================================
@@ -406,7 +411,6 @@ class OpenBCIInterface:
                         processed[ch], self.sampling_rate, 0.5, 50.0, 4,
                         FilterTypes.BUTTERWORTH.value, 0
                     )
-                    # Notch filter (50 Hz). For 60Hz regions, consider 58-62
                     DataFilter.perform_bandstop(
                         processed[ch], self.sampling_rate, 48.0, 52.0, 4,
                         FilterTypes.BUTTERWORTH.value, 0
@@ -414,10 +418,8 @@ class OpenBCIInterface:
                 except Exception as e:
                     logging.debug(f"Filtering error on ch {ch}: {e}")
         else:
-            # Fallback simple filter using scipy if desired (skipped for brevity)
             pass
         
-        # ICA artifact removal
         if SKLEARN_AVAILABLE and processed.shape[0] >= 4:
             try:
                 ica = FastICA(n_components=min(processed.shape[0], 8), random_state=42, max_iter=500)
@@ -438,17 +440,14 @@ class OpenBCIInterface:
         if eeg_data.size == 0:
             return features
         
-        # Time-domain features
         features['mean'] = float(np.mean(eeg_data))
         features['std'] = float(np.std(eeg_data))
         features['rms'] = float(np.sqrt(np.mean(eeg_data**2)))
         
-        # Frequency-domain features (band powers)
         for band_name, (low, high) in self.FREQ_BANDS.items():
             band_power = self._compute_band_power(eeg_data, low, high)
             features[f'power_{band_name}'] = float(band_power)
         
-        # Frontal alpha asymmetry (emotion indicator) - simple heuristic
         if eeg_data.shape[0] >= 4:
             alpha_left = self._compute_band_power(eeg_data[:2].mean(axis=0).reshape(1, -1), 8, 13)
             alpha_right = self._compute_band_power(eeg_data[2:4].mean(axis=0).reshape(1, -1), 8, 13)
@@ -460,12 +459,10 @@ class OpenBCIInterface:
         """Compute power in frequency band over channels"""
         try:
             if MNE_AVAILABLE:
-                # data: (channels, samples)
                 psd, freqs = psd_array_multitaper(
                     data, sfreq=self.sampling_rate, fmin=low_freq, fmax=high_freq,
                     adaptive=True, normalization='full', verbose=False
                 )
-                # psd shape: (channels, freqs)
                 return float(np.mean(np.trapz(psd, freqs, axis=-1)))
             else:
                 freqs, psd = signal.welch(data, fs=self.sampling_rate, nperseg=min(512, data.shape[-1]))
@@ -488,7 +485,6 @@ class EmotionRecognitionModel:
         self.n_timepoints = n_timepoints
         self.n_emotions = len(EmotionalState)
         self.model = self._build_model()
-        # Optional weights loading
         if weights_path and os.path.exists(weights_path):
             try:
                 self.model.load_weights(weights_path)
@@ -499,65 +495,47 @@ class EmotionRecognitionModel:
             logging.warning("EmotionRecognitionModel running with random weights (no weights file found).")
     
     def _build_model(self):
-        """Build deep learning model"""
         inputs = layers.Input(shape=(self.n_timepoints, self.n_channels))
-        
-        # Multi-scale CNN
         conv_outputs = []
         for kernel_size in [3, 5, 7]:
             xk = layers.Conv1D(64, kernel_size, padding='same', activation='relu')(inputs)
             conv_outputs.append(xk)
-        
         x = layers.Concatenate()(conv_outputs)
         x = layers.MaxPooling1D(2)(x)
         x = layers.Dropout(0.3)(x)
-        
         x = layers.Conv1D(128, 3, padding='same', activation='relu')(x)
         x = layers.MaxPooling1D(2)(x)
         x = layers.Dropout(0.3)(x)
 
-        # Lightweight self-attention block
         q = layers.Dense(128)(x)
         k = layers.Dense(128)(x)
         v = layers.Dense(128)(x)
         attn = layers.Attention(use_scale=True)([q, v, k])
         x = layers.Add()([x, attn])
         x = layers.LayerNormalization()(x)
-        
-        # Global pooling
         x = layers.GlobalAveragePooling1D()(x)
         x = layers.Dense(256, activation='relu')(x)
         x = layers.Dropout(0.4)(x)
-        
-        # Multi-task outputs
         emotion_output = layers.Dense(self.n_emotions, activation='softmax', name='emotion')(x)
         valence_output = layers.Dense(1, activation='tanh', name='valence')(x)
         arousal_output = layers.Dense(1, activation='sigmoid', name='arousal')(x)
         dominance_output = layers.Dense(1, activation='sigmoid', name='dominance')(x)
-        
         model = keras.Model(inputs=inputs, outputs=[emotion_output, valence_output, arousal_output, dominance_output])
-        
         model.compile(
             optimizer=keras.optimizers.Adam(0.001),
             loss={'emotion': 'categorical_crossentropy', 'valence': 'mse', 'arousal': 'mse', 'dominance': 'mse'},
             metrics={'emotion': 'accuracy', 'valence': 'mae', 'arousal': 'mae', 'dominance': 'mae'}
         )
-        
         return model
     
     @tf.function
     def _forward_train(self, batch):
-        # training=True enables dropout at inference for MC Dropout
         return self.model(batch, training=True)
 
     def predict_with_uncertainty(self, eeg_data: np.ndarray, n_samples: int = 15) -> Dict[str, Any]:
-        """Predict with MC Dropout uncertainty estimation"""
-        # Resize if needed
         if eeg_data.shape != (self.n_timepoints, self.n_channels):
             eeg_data = self._resize_input(eeg_data)
-        
         batch = np.expand_dims(eeg_data, axis=0)
-
         emos, vals, aros, doms = [], [], [], []
         for _ in range(max(1, n_samples)):
             emotion_probs, valence, arousal, dominance = self._forward_train(batch)
@@ -565,7 +543,6 @@ class EmotionRecognitionModel:
             vals.append(valence.numpy()[0, 0])
             aros.append(arousal.numpy()[0, 0])
             doms.append(dominance.numpy()[0, 0])
-
         emos = np.stack(emos, axis=0)
         return {
             'emotion_probs_mean': emos.mean(axis=0),
@@ -579,25 +556,16 @@ class EmotionRecognitionModel:
         }
     
     def _resize_input(self, eeg_data: np.ndarray) -> np.ndarray:
-        """Resize/resample input data to (timepoints, channels)"""
         from scipy.interpolate import interp1d
-        
-        # Accept either (channels, time) or (time, channels)
         if eeg_data.shape[0] == self.n_channels and eeg_data.shape[1] != self.n_channels:
-            # looks like (channels, time)
             eeg_data = eeg_data.T
-        
-        current_shape = eeg_data.shape  # (time, channels)
-        
-        # Handle channels
+        current_shape = eeg_data.shape
         if current_shape[1] != self.n_channels:
             if current_shape[1] < self.n_channels:
                 padding = np.zeros((current_shape[0], self.n_channels - current_shape[1]))
                 eeg_data = np.concatenate([eeg_data, padding], axis=1)
             else:
                 eeg_data = eeg_data[:, :self.n_channels]
-        
-        # Handle timepoints
         if current_shape[0] != self.n_timepoints:
             resampled = np.zeros((self.n_timepoints, self.n_channels))
             x_old = np.linspace(0, 1, current_shape[0])
@@ -606,7 +574,6 @@ class EmotionRecognitionModel:
                 f = interp1d(x_old, eeg_data[:, ch], kind='cubic', fill_value="extrapolate", bounds_error=False)
                 resampled[:, ch] = f(x_new)
             eeg_data = resampled
-        
         return eeg_data
 
     def export_tflite(self, out_path: str):
@@ -626,8 +593,6 @@ class EmotionRecognitionModel:
 # ============================================================================
 
 class CrisisDetector:
-    """Advanced crisis detection system with temporal aggregation"""
-    
     CRISIS_PATTERNS = [
         r"\bsuicide\b", r"\bkill myself\b", r"\bend it all\b", r"\bself[-\s]?harm\b",
         r"\bnot worth living\b", r"\bbetter off dead\b", r"\bno reason to live\b"
@@ -644,50 +609,33 @@ class CrisisDetector:
     
     def detect_crisis(self, user_id: str, emotion_prediction: EmotionPrediction,
                       text_input: Optional[str] = None) -> Tuple[CrisisLevel, float]:
-        """Detect crisis state with aggregated risk"""
         now = datetime.now()
         state = self.user_state.get(user_id, {'score': 0.0, 'last_ts': now})
         dt = (now - state['last_ts']).total_seconds()
         agg_score = self._decay(state['score'], dt)
-
-        # Instantaneous risk r
         r = 0.0
-        
-        # Emotional risk (40% weight)
         if emotion_prediction.valence < -0.7:
             r += 0.25
         if emotion_prediction.primary_emotion.value in ['hopelessness', 'depression']:
             r += 0.15
-        
-        # Sustained negativity check
         if user_id not in self.pattern_buffer:
             self.pattern_buffer[user_id] = deque(maxlen=10)
         self.pattern_buffer[user_id].append(emotion_prediction.valence)
         if len(self.pattern_buffer[user_id]) >= 5:
             if sum(1 for v in self.pattern_buffer[user_id] if v < -0.5) >= 4:
                 r += 0.20
-        
-        # Text analysis (40% weight)
         if text_input:
             text_lower = text_input.lower()
             keyword_hits = sum(1 for k in ['suicide', 'kill myself', 'end it', 'not worth living'] if k in text_lower)
             r += min(keyword_hits * 0.15, 0.25)
             pattern_hits = sum(1 for p in self.CRISIS_PATTERNS if re.search(p, text_lower))
             r += min(pattern_hits * 0.15, 0.15)
-        
-        # Arousal extremes (20% weight)
         if emotion_prediction.arousal > 0.9 or emotion_prediction.arousal < 0.1:
             r += 0.10
-
-        # Uncertainty dampening (less weight when uncertain)
         uncert = 1.0 - float(emotion_prediction.confidence)
         r *= float(np.clip(1.0 - 0.5 * uncert, 0.5, 1.0))
-        
-        # Aggregate
         agg_score = np.clip(agg_score + r, 0.0, 1.5)
         self.user_state[user_id] = {'score': float(agg_score), 'last_ts': now}
-        
-        # Determine crisis level using clamped score
         risk_score = float(np.clip(agg_score, 0.0, 1.0))
         if risk_score >= 0.80:
             crisis_level = CrisisLevel.EMERGENCY
@@ -701,24 +649,49 @@ class CrisisDetector:
             crisis_level = CrisisLevel.LOW
         else:
             crisis_level = CrisisLevel.NONE
-        
         if crisis_level.value >= CrisisLevel.MODERATE.value:
             self._log_crisis(user_id, crisis_level, risk_score)
-        
         return crisis_level, risk_score
     
     def _log_crisis(self, user_id: str, level: CrisisLevel, score: float):
-        """Log crisis event"""
         if user_id not in self.crisis_history:
             self.crisis_history[user_id] = []
-        
         self.crisis_history[user_id].append({
             'level': level.name,
             'risk_score': score,
             'timestamp': datetime.now().isoformat()
         })
-        
         logging.critical(f"CRISIS DETECTED - User: {user_id}, Level: {level.name}, Risk: {score:.2f}")
+
+
+# ============================================================================
+# EVERYDAY EMPATHY MESSAGES
+# ============================================================================
+
+def generate_empathic_message(emotion: EmotionalState, user_profile: UserProfile) -> Optional[str]:
+    """Return supportive, contextually appropriate message (non-crisis)"""
+    if emotion in [EmotionalState.ANGER, EmotionalState.FRUSTRATION]:
+        return (
+            "Widzę, że się złościsz. "
+            "Może warto zrobić krótką przerwę lub posłucha�� ulubionej muzyki?"
+            if "muzyka" in ' '.join(user_profile.liked_activities) else
+            "Czujesz zdenerwowanie. Chcesz żebym coś doradził, żeby się uspokoić?"
+        )
+    elif emotion in [EmotionalState.SADNESS, EmotionalState.LONELINESS, EmotionalState.MELANCHOLY, EmotionalState.DEPRESSION, EmotionalState.HOPELESSNESS]:
+        activity = user_profile.liked_activities[0] if user_profile.liked_activities else "przypomnieć sobie coś miłego"
+        return f"Czujesz się smutno. Może to dobry moment, aby {activity}?"
+    elif emotion == EmotionalState.EUPHORIA:
+        return (
+            "Czuję razem z Tobą ogromną radość! Warto jednak pamiętać też o odpoczynku i nie zapominać o codziennych sprawach 😊"
+        )
+    elif emotion in [EmotionalState.BOREDOM, EmotionalState.CONFUSION]:
+        activity = user_profile.liked_activities[0] if user_profile.liked_activities else "zrobić coś nowego"
+        return f"Widzę nudę lub znużenie – może {activity} pozwoli przełamać monotonię?"
+    elif emotion in [EmotionalState.JOY, EmotionalState.AMUSEMENT, EmotionalState.CONTENTMENT]:
+        return "Super, że odczuwasz pozytywne emocje! Podzielisz się tym, co dziś sprawia Ci radość?"
+    elif emotion == EmotionalState.NEUTRAL:
+        return None
+    return None
 
 
 # ============================================================================
@@ -729,42 +702,31 @@ class EnhancedEmpathyEngine:
     """Complete empathy engine integrating all components"""
     
     def __init__(self, config: Optional[Dict[str, Any]] = None):
-        """Initialize the complete system"""
-        # Load config from dict/env
         if PYDANTIC_AVAILABLE:
             if isinstance(config, dict):
                 self.config = EmpathyConfig(**config)
             else:
                 self.config = EmpathyConfig() if config is None else config
         else:
-            # Minimal fallback
             base = EmpathyConfig()
             if isinstance(config, dict) and config:
                 for k, v in config.items():
                     setattr(base, k, v)
             self.config = base
-        
-        # Initialize components
         self.openbci = OpenBCIInterface(
             board_type=self.config.board_type,
             serial_port=self.config.serial_port,
             sampling_rate=self.config.sampling_rate
         )
-        
         self.emotion_model = EmotionRecognitionModel(
             n_channels=self.config.n_channels,
             n_timepoints=self.config.n_timepoints,
             weights_path=self.config.weights_path
         )
-        
         self.crisis_detector = CrisisDetector()
         self.standardizer = OnlineStandardizer()
-        
-        # User management
         self.user_profiles: Dict[str, UserProfile] = {}
         self.is_running = False
-        
-        # Privacy - key management
         key_env = os.environ.get("EMPATHY_FERNET_KEY", "") or getattr(self.config, "fernet_key", "")
         if key_env:
             try:
@@ -777,70 +739,46 @@ class EnhancedEmpathyEngine:
             self.fernet = Fernet(Fernet.generate_key())
             logging.info("Generated new Fernet key for this process.")
 
-        # Observability
         if getattr(self.config, "enable_prometheus", True) and PROM_AVAILABLE:
             _init_metrics(self.config.prometheus_port)
         else:
             logging.info("Prometheus metrics disabled or not available.")
-        
-        logging.info("Enhanced Empathy Engine initialized")
+
+        logging.info("Enhanced Empathy Engine initialized (with everyday empathy)")
     
     def start_monitoring(self, user_id: str):
-        """Start real-time emotion monitoring"""
         self.openbci.start_stream()
-        
         if user_id not in self.user_profiles:
             self.user_profiles[user_id] = UserProfile(user_id=user_id)
-        
         self.is_running = True
         logging.info(f"Monitoring started for user: {user_id}")
     
     def stop_monitoring(self):
-        """Stop monitoring"""
         self.is_running = False
         self.openbci.stop_stream()
         logging.info("Monitoring stopped")
     
     def process_emotion(self, user_id: str, text_input: Optional[str] = None) -> EmotionPrediction:
-        """Process real-time emotion from all inputs"""
-        
-        # Get EEG data
         eeg_window = self.openbci.get_latest_window(window_size=4.0)
-        
         if eeg_window is None or eeg_window.size == 0:
-            # Return neutral state if no data
             return self._create_neutral_prediction()
-        
         start = time.time()
-        # Preprocess EEG
         eeg_preprocessed = self.openbci.preprocess_eeg(eeg_window)
-        
-        # Online normalization
         self.standardizer.update(eeg_preprocessed)
         eeg_preprocessed = self.standardizer.transform(eeg_preprocessed)
-        
-        # Extract features (can be used for interpretability/UI)
         features = self.openbci.extract_features(eeg_preprocessed)
-        
-        # Predict emotion with uncertainty
         mc_samples = int(getattr(self.config, "mc_dropout_samples", 15))
         unc = self.emotion_model.predict_with_uncertainty(eeg_preprocessed.T, n_samples=mc_samples)
         emotion_idx = int(np.argmax(unc['emotion_probs_mean']))
         primary_emotion = list(EmotionalState)[emotion_idx]
         emotion_probs = {e.value: float(unc['emotion_probs_mean'][i]) for i, e in enumerate(EmotionalState)}
-        
-        # Confidence calibrated by uncertainty
         confidence = float(np.max(unc['emotion_probs_mean']) * np.exp(-np.mean(unc['emotion_probs_std'])))
-        
-        # Personalization via baseline adjustment
         if user_id not in self.user_profiles:
             self.user_profiles[user_id] = UserProfile(user_id=user_id)
         profile = self.user_profiles[user_id]
         adj_valence = float(np.clip(unc['valence_mean'] - profile.baseline_valence, -1.0, 1.0))
         adj_arousal = float(np.clip(unc['arousal_mean'] - profile.baseline_arousal, 0.0, 1.0))
         adj_dominance = float(np.clip(unc['dominance_mean'] - profile.baseline_dominance, 0.0, 1.0))
-        
-        # Create prediction object
         prediction = EmotionPrediction(
             primary_emotion=primary_emotion,
             emotion_probabilities=emotion_probs,
@@ -851,22 +789,22 @@ class EnhancedEmpathyEngine:
             temporal_stability=self._compute_stability(user_id, primary_emotion),
             feature_importance={'eeg': 1.0}
         )
-        
-        # Crisis detection
         crisis_level, risk_score = self.crisis_detector.detect_crisis(
             user_id, prediction, text_input
         )
         prediction.crisis_level = crisis_level
         prediction.crisis_risk_score = risk_score
-        
-        # Update user profile
+
+        # NOWOŚĆ: wsparcie codziennej empatii (poza kryzysem)
+        if crisis_level.value < CrisisLevel.MODERATE.value:
+            message = generate_empathic_message(primary_emotion, profile)
+            if message:
+                prediction.empathic_message = message
+
         profile.emotion_history.append(prediction)
-        
-        # Handle crisis if needed
         if crisis_level.value >= CrisisLevel.HIGH.value:
             self._handle_crisis(user_id, prediction)
-        
-        # Metrics
+
         if INFERENCE_LATENCY is not None:
             INFERENCE_LATENCY.set((time.time() - start) * 1000.0)
         if QUEUE_DEPTH is not None:
@@ -881,54 +819,39 @@ class EnhancedEmpathyEngine:
                 pass
         if CRISIS_EVENTS is not None and prediction.crisis_level.value >= CrisisLevel.MODERATE.value:
             CRISIS_EVENTS.inc()
-        
         return prediction
     
     def calibrate_baseline(self, user_id: str, duration: float = 60.0):
-        """Calibrate user's baseline emotional state"""
         logging.info(f"Starting baseline calibration for {user_id} ({duration}s)")
-        
         start_time = time.time()
         measurements = []
-        
         while (time.time() - start_time) < duration:
             prediction = self.process_emotion(user_id)
             measurements.append(prediction)
             time.sleep(2.0)
-        
         if measurements:
             profile = self.user_profiles[user_id]
             profile.baseline_valence = float(np.mean([p.valence for p in measurements]))
             profile.baseline_arousal = float(np.mean([p.arousal for p in measurements]))
             profile.baseline_dominance = float(np.mean([p.dominance for p in measurements]))
             profile.calibration_completed = True
-            
             logging.info(f"Calibration complete - Baseline V:{profile.baseline_valence:.2f}, "
                         f"A:{profile.baseline_arousal:.2f}")
     
     def get_session_report(self, user_id: str) -> Dict[str, Any]:
-        """Generate comprehensive session report"""
         if user_id not in self.user_profiles:
             return {'error': 'User not found'}
-        
         profile = self.user_profiles[user_id]
         history = list(profile.emotion_history)
-        
         if not history:
             return {'error': 'No emotion history'}
-        
         valences = [p.valence for p in history]
         arousals = [p.arousal for p in history]
-        
-        # Emotion distribution
         emotion_counts: Dict[str, int] = {}
         for pred in history:
             emotion = pred.primary_emotion.value
             emotion_counts[emotion] = emotion_counts.get(emotion, 0) + 1
-        
         emotion_dist = {k: v/len(history) for k, v in emotion_counts.items()}
-        
-        # Trend analysis
         if len(valences) >= 5:
             trend_slope = np.polyfit(range(len(valences)), valences, 1)[0]
             if trend_slope > 0.01:
@@ -939,7 +862,6 @@ class EnhancedEmpathyEngine:
                 trend = 'stable'
         else:
             trend = 'insufficient_data'
-        
         report = {
             'user_id': user_id,
             'session_duration_minutes': (datetime.now() - profile.session_start).seconds / 60,
@@ -953,18 +875,13 @@ class EnhancedEmpathyEngine:
             'crisis_events': len([p for p in history if p.crisis_level.value >= CrisisLevel.MODERATE.value]),
             'calibration_status': profile.calibration_completed
         }
-        
         return report
     
     def export_session(self, user_id: str, filepath: str):
-        """Export session data to JSON"""
         report = self.get_session_report(user_id)
-        
         if 'error' in report:
             logging.error(f"Cannot export: {report['error']}")
             return
-        
-        # Add detailed history
         profile = self.user_profiles[user_id]
         report['emotion_history'] = [
             {
@@ -975,18 +892,16 @@ class EnhancedEmpathyEngine:
                 'confidence': p.confidence,
                 'crisis_level': p.crisis_level.name,
                 'crisis_risk_score': p.crisis_risk_score,
-                'timestamp': p.timestamp.isoformat()
+                'timestamp': p.timestamp.isoformat(),
+                'empathic_message': p.empathic_message if hasattr(p,'empathic_message') else None,
             }
             for p in profile.emotion_history
         ]
-        
         with open(filepath, 'w', encoding='utf-8') as f:
             json.dump(report, f, indent=2, ensure_ascii=False)
-        
         logging.info(f"Session exported to {filepath}")
 
     def export_session_encrypted(self, user_id: str, filepath: str):
-        """Export session data encrypted with Fernet"""
         report = self.get_session_report(user_id)
         if 'error' in report:
             logging.error(f"Cannot export: {report['error']}")
@@ -998,33 +913,21 @@ class EnhancedEmpathyEngine:
         logging.info(f"Encrypted session exported to {filepath}")
     
     def _compute_stability(self, user_id: str, current_emotion: EmotionalState) -> float:
-        """Compute temporal stability of emotion"""
         if user_id not in self.user_profiles:
             return 0.0
-        
         history = list(self.user_profiles[user_id].emotion_history)
         if len(history) < 3:
             return 0.0
-        
         recent = history[-3:]
         same_count = sum(1 for p in recent if p.primary_emotion == current_emotion)
         return same_count / 3.0
     
     def _handle_crisis(self, user_id: str, prediction: EmotionPrediction):
-        """Handle crisis situation"""
         logging.critical(f"CRISIS INTERVENTION - User: {user_id}, Level: {prediction.crisis_level.name}")
-        
-        # Generate crisis response
         crisis_message = self._generate_crisis_response(prediction.crisis_level)
         logging.critical(f"Crisis Response: {crisis_message}")
-        
-        # In production: trigger emergency protocols
-        # - Notify emergency contacts
-        # - Alert therapist/crisis team
-        # - Provide immediate resources
     
     def _generate_crisis_response(self, level: CrisisLevel) -> str:
-        """Generate appropriate crisis response"""
         if level == CrisisLevel.EMERGENCY:
             return (
                 "IMMEDIATE ACTION REQUIRED: Please contact emergency services (911) or "
@@ -1044,7 +947,6 @@ class EnhancedEmpathyEngine:
             return "If you're experiencing distress, support is available. Consider reaching out to a trusted person."
     
     def _create_neutral_prediction(self) -> EmotionPrediction:
-        """Create a safe neutral prediction fallback"""
         return EmotionPrediction(
             primary_emotion=EmotionalState.NEUTRAL,
             emotion_probabilities={e.value: (1.0 if e == EmotionalState.NEUTRAL else 0.0) for e in EmotionalState},
@@ -1056,6 +958,7 @@ class EnhancedEmpathyEngine:
             feature_importance={'eeg': 1.0},
             crisis_level=CrisisLevel.NONE,
             crisis_risk_score=0.0,
+            empathic_message=None,
         )
 
 
