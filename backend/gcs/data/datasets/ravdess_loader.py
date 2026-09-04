@@ -44,7 +44,8 @@ class RAVDESSLoader(DatasetInterface):
     def __init__(self, 
                  dataset_path: str,
                  feature_extractor: Optional[Any] = None,
-                 feature_dim: int = 128):
+                 feature_dim: int = 128,
+                 allow_simulation: Optional[bool] = None):
         """
         Args:
             dataset_path: Path to RAVDESS directory or pre-extracted features .npz
@@ -54,6 +55,14 @@ class RAVDESSLoader(DatasetInterface):
         self.dataset_path = dataset_path
         self.feature_extractor = feature_extractor
         self.feature_dim = feature_dim
+        if allow_simulation is None:
+            env_value = os.environ.get("GCS_ALLOW_SIMULATED_DATA")
+            if env_value is None:
+                self.allow_simulation = os.environ.get("GCS_ENV", "").strip().lower() != "production"
+            else:
+                self.allow_simulation = env_value.strip().lower() in {"1", "true", "yes", "on"}
+        else:
+            self.allow_simulation = bool(allow_simulation)
         self.samples = []
         self._loaded = False
         
@@ -69,11 +78,19 @@ class RAVDESSLoader(DatasetInterface):
             return self._load_from_npz()
         
         if not os.path.exists(self.dataset_path):
+            if not self.allow_simulation:
+                raise FileNotFoundError(
+                    f"RAVDESS dataset not found at {self.dataset_path} and simulation is disabled"
+                )
             logging.warning(f"RAVDESS dataset not found at {self.dataset_path}, using simulation")
             return self._simulate_data()
         
         # Directory-based loading would require audio processing
         # For now, use simulation
+        if not self.allow_simulation:
+            raise RuntimeError(
+                "Directory-based RAVDESS loading is not implemented and simulation is disabled"
+            )
         logging.warning("Directory-based RAVDESS loading requires audio processing. Using simulation.")
         return self._simulate_data()
     
@@ -88,6 +105,8 @@ class RAVDESSLoader(DatasetInterface):
             actor_ids = data.get('actor', data.get('subject_id'))
             
             if voice_features is None:
+                if not self.allow_simulation:
+                    raise ValueError("No voice features found in RAVDESS file and simulation is disabled")
                 logging.warning("No voice features found in file")
                 return self._simulate_data()
             
@@ -123,6 +142,8 @@ class RAVDESSLoader(DatasetInterface):
             return self.samples
             
         except Exception as e:
+            if not self.allow_simulation:
+                raise RuntimeError(f"Error loading RAVDESS features with simulation disabled: {e}") from e
             logging.error(f"Error loading RAVDESS features: {e}", exc_info=True)
             return self._simulate_data()
     

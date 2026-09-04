@@ -33,7 +33,8 @@ class WESADLoader(DatasetInterface):
     def __init__(self, 
                  dataset_path: str,
                  window_size: float = 4.0,  # seconds
-                 sampling_rate: int = 700):  # Hz for chest sensor
+                 sampling_rate: int = 700,  # Hz for chest sensor
+                 allow_simulation: Optional[bool] = None):
         """
         Args:
             dataset_path: Path to WESAD directory with subject files
@@ -43,6 +44,14 @@ class WESADLoader(DatasetInterface):
         self.dataset_path = dataset_path
         self.window_size = window_size
         self.sampling_rate = sampling_rate
+        if allow_simulation is None:
+            env_value = os.environ.get("GCS_ALLOW_SIMULATED_DATA")
+            if env_value is None:
+                self.allow_simulation = os.environ.get("GCS_ENV", "").strip().lower() != "production"
+            else:
+                self.allow_simulation = env_value.strip().lower() in {"1", "true", "yes", "on"}
+        else:
+            self.allow_simulation = bool(allow_simulation)
         self.samples = []
         self._loaded = False
         
@@ -54,6 +63,8 @@ class WESADLoader(DatasetInterface):
             return self.samples
         
         if not os.path.exists(self.dataset_path):
+            if not self.allow_simulation:
+                raise FileNotFoundError(f"WESAD dataset not found at {self.dataset_path} and simulation is disabled")
             logging.warning(f"WESAD dataset not found at {self.dataset_path}, using simulation")
             return self._simulate_data()
         
@@ -63,6 +74,10 @@ class WESADLoader(DatasetInterface):
                            if f.startswith('S') and f.endswith('.pkl')]
             
             if not subject_files:
+                if not self.allow_simulation:
+                    raise FileNotFoundError(
+                        f"No WESAD subject files found in {self.dataset_path} and simulation is disabled"
+                    )
                 logging.warning(f"No WESAD subject files found in {self.dataset_path}")
                 return self._simulate_data()
             
@@ -141,6 +156,8 @@ class WESADLoader(DatasetInterface):
             return self.samples
             
         except Exception as e:
+            if not self.allow_simulation:
+                raise RuntimeError(f"Error loading WESAD data with simulation disabled: {e}") from e
             logging.error(f"Error loading WESAD data: {e}", exc_info=True)
             return self._simulate_data()
     
@@ -294,14 +311,14 @@ class WESADLoader(DatasetInterface):
         """Map valence/arousal to categorical emotion"""
         if valence > 0.3:
             if arousal > 0.6:
-                return np.random.choice([0, 1, 2])  # excitement, joy, enthusiasm
+                return 1  # joy
             else:
-                return np.random.choice([5, 6, 7])  # contentment, peacefulness, gratitude
+                return 5  # contentment
         else:
             if arousal > 0.6:
-                return np.random.choice([10, 11, 12])  # anger, fear, anxiety
+                return 12  # anxiety
             else:
-                return np.random.choice([15, 16, 17])  # sadness, depression, loneliness
+                return 15  # sadness
     
     def _simulate_data(self, n_samples: int = 500) -> List[MultiModalSample]:
         """Generate simulated WESAD-like data"""

@@ -47,12 +47,20 @@ In the first terminal, start the backend:
 code
 Bash
 uvicorn backend.main:app --host 0.0.0.0 --port 8000
+This entrypoint exposes the FastAPI app from `backend/gcs/serving/server.py` through `backend/main.py`.
 In the second terminal, start the frontend:
 code
 Bash
 npm run --prefix frontend start
 The Codespace will automatically detect that you've started a web server and a pop-up will appear asking if you want to open it in a browser. Click "Open in Browser".
 You are now running the full-stack GCS Cognitive Dashboard!
+
+### Production Safety Flags
+
+Simulation and demo shortcuts are disabled in production when `GCS_ENV=production`.
+
+- `GCS_ALLOW_SIMULATED_DATA=false` disables synthetic fallback for data loaders/streaming.
+- `GCS_ENABLE_DEMO_AUTO_CONSENT=false` keeps pilot participants pending until explicit consent is recorded.
 Project Structure
 The repository is organized as a professional monorepo.
 code

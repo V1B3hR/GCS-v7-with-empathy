@@ -14,6 +14,7 @@ Target: 1,100+ participants across 3 pilot sites
 """
 
 import logging
+import os
 import sys
 from pathlib import Path
 from datetime import datetime, timedelta
@@ -32,6 +33,13 @@ from societal_pilot_framework import PilotSite, PilotContext, PilotStatus
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+def _env_flag(name: str, default: bool) -> bool:
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
 class EnrollmentStatus(Enum):
@@ -90,10 +98,15 @@ class Phase20PilotActivation:
     and monitoring system startup for Phase 20 pilots.
     """
     
-    def __init__(self, data_dir: Optional[Path] = None):
+    def __init__(self, data_dir: Optional[Path] = None, enable_demo_auto_consent: Optional[bool] = None):
         """Initialize pilot activation manager"""
         self.data_dir = data_dir or Path("/tmp/gcs_phase20_activation")
         self.data_dir.mkdir(parents=True, exist_ok=True)
+        self.enable_demo_auto_consent = (
+            _env_flag("GCS_ENABLE_DEMO_AUTO_CONSENT", False)
+            if enable_demo_auto_consent is None
+            else bool(enable_demo_auto_consent)
+        )
         
         # Initialize launcher
         self.launcher = Phase20PilotLauncher(data_dir=self.data_dir)
@@ -414,16 +427,21 @@ class Phase20PilotActivation:
             participants = self.enroll_batch_participants(site_id, target_participants)
             activation_summary['enrolled_participants'] = len(participants)
             
-            # Step 5: Auto-consent and activate initial participants
+            # Step 5: Consent and activation
             logger.info("Step 5: Processing consent and activation")
             activated_count = 0
-            for participant in participants:
-                # In production, this would be manual/digital consent
-                # For demo, auto-consent first 70% (simulating expected engagement)
-                if activated_count < int(target_participants * 0.7):
-                    self.complete_consent(participant.participant_id)
-                    self.activate_participant(participant.participant_id)
-                    activated_count += 1
+            if self.enable_demo_auto_consent:
+                logger.warning("Demo auto-consent is enabled; do not use this mode in production.")
+                for participant in participants:
+                    # Demo-only mode to simulate expected engagement
+                    if activated_count < int(target_participants * 0.7):
+                        self.complete_consent(participant.participant_id)
+                        self.activate_participant(participant.participant_id)
+                        activated_count += 1
+            else:
+                logger.info(
+                    "Auto-consent disabled. Participants remain pending until explicit consent is recorded."
+                )
             
             activation_summary['active_participants'] = activated_count
             activation_summary['status'] = 'active'

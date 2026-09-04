@@ -210,11 +210,8 @@ The GCS system now includes a complete multimodal affective state recognition pi
 ### Training the Affective Model
 
 ```bash
-# Using the new affective training module (coming soon)
-python -m backend.gcs.models.affective_trainer \
-    --config backend/gcs/affective_config.yaml \
-    --datasets deap wesad ravdess \
-    --output models/affective
+# Train with the current training entrypoint
+python -m backend.gcs.training affective --config config.yaml
 
 # Or load datasets programmatically:
 from gcs.data.datasets.deap_loader import DEAPLoader

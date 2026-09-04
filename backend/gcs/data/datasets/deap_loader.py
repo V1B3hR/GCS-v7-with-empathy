@@ -38,7 +38,8 @@ class DEAPLoader(DatasetInterface):
                  dataset_path: str,
                  normalize_eeg: bool = True,
                  source_localization: Optional[Any] = None,
-                 include_physio: bool = True):
+                 include_physio: bool = True,
+                 allow_simulation: Optional[bool] = None):
         """
         Args:
             dataset_path: Path to DEAP .npz file
@@ -50,6 +51,14 @@ class DEAPLoader(DatasetInterface):
         self.normalize_eeg = normalize_eeg
         self.source_localization = source_localization
         self.include_physio = include_physio
+        if allow_simulation is None:
+            env_value = os.environ.get("GCS_ALLOW_SIMULATED_DATA")
+            if env_value is None:
+                self.allow_simulation = os.environ.get("GCS_ENV", "").strip().lower() != "production"
+            else:
+                self.allow_simulation = env_value.strip().lower() in {"1", "true", "yes", "on"}
+        else:
+            self.allow_simulation = bool(allow_simulation)
         self.samples = []
         self._loaded = False
         
@@ -61,6 +70,8 @@ class DEAPLoader(DatasetInterface):
             return self.samples
         
         if not os.path.exists(self.dataset_path):
+            if not self.allow_simulation:
+                raise FileNotFoundError(f"DEAP dataset not found at {self.dataset_path} and simulation is disabled")
             logging.warning(f"DEAP dataset not found at {self.dataset_path}, using simulation")
             return self._simulate_data()
         
@@ -77,6 +88,8 @@ class DEAPLoader(DatasetInterface):
             subject_ids = self._get_array(data, ['subject_id', 'subject', 'participant'])
             
             if eeg_data is None:
+                if not self.allow_simulation:
+                    raise ValueError("No EEG data found in DEAP file and simulation is disabled")
                 logging.warning("No EEG data found in DEAP file")
                 return self._simulate_data()
             
@@ -145,6 +158,8 @@ class DEAPLoader(DatasetInterface):
             return self.samples
             
         except Exception as e:
+            if not self.allow_simulation:
+                raise RuntimeError(f"Error loading DEAP data with simulation disabled: {e}") from e
             logging.error(f"Error loading DEAP data: {e}", exc_info=True)
             return self._simulate_data()
     
@@ -168,18 +183,14 @@ class DEAPLoader(DatasetInterface):
         # Simple quadrant-based mapping
         if valence > 0.3:
             if arousal > 0.6:
-                # High arousal positive
-                return np.random.choice([0, 1, 2, 3, 4])  # excitement, joy, enthusiasm, euphoria, amusement
+                return 1  # joy
             else:
-                # Low arousal positive
-                return np.random.choice([5, 6, 7, 8, 9])  # contentment, peacefulness, gratitude, serenity, satisfaction
+                return 5  # contentment
         else:
             if arousal > 0.6:
-                # High arousal negative
-                return np.random.choice([10, 11, 12, 13, 14])  # anger, fear, anxiety, panic, frustration
+                return 12  # anxiety
             else:
-                # Low arousal negative
-                return np.random.choice([15, 16, 17, 18, 19])  # sadness, depression, loneliness, melancholy, hopelessness
+                return 15  # sadness
     
     def _simulate_data(self, n_samples: int = 1000) -> List[MultiModalSample]:
         """Generate simulated DEAP-like data"""

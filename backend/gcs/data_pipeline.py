@@ -8,7 +8,19 @@ class DataPipeline:
     """Handles all data loading and preprocessing for both foundational and affective models."""
     def __init__(self, config):
         self.config = config
+        self.allow_simulated_data = self._resolve_allow_simulated_data()
         logging.info("Data Pipeline Initialized.")
+
+    def _resolve_allow_simulated_data(self) -> bool:
+        configured = self.config.get("allow_simulated_data")
+        if configured is not None:
+            return bool(configured)
+        env_value = os.environ.get("GCS_ALLOW_SIMULATED_DATA")
+        if env_value is None:
+            if os.environ.get("GCS_ENV", "").strip().lower() == "production":
+                return False
+            return True
+        return env_value.strip().lower() in {"1", "true", "yes", "on"}
 
     def _simulate_source_localization(self, raw_eeg_data):
         """CONCEPTUAL: Simulates eLORETA source localization."""
@@ -61,13 +73,19 @@ class DataPipeline:
                         if labels_key is not None:
                             labels = data[labels_key]
                         else:
-                            # Generate simple labels based on task assumption (motor imagery)
+                            if not self.allow_simulated_data:
+                                raise ValueError(
+                                    f"No labels found in {eeg_file} and simulated labels are disabled"
+                                )
                             labels = np.random.randint(0, 2, raw_eeg.shape[0])
                             logging.warning(f"No labels found in {eeg_file}, generating random labels")
                     
                     else:  # .npy file
                         raw_eeg = np.load(file_path)
-                        # Generate labels for .npy files
+                        if not self.allow_simulated_data:
+                            raise ValueError(
+                                f"No labels available for .npy file {eeg_file} and simulated labels are disabled"
+                            )
                         labels = np.random.randint(0, 2, raw_eeg.shape[0])
                         logging.warning(f"No labels available for .npy file {eeg_file}, generating random labels")
                     
@@ -100,6 +118,11 @@ class DataPipeline:
         # If no real data found or insufficient subjects, supplement with simulated data
         num_loaded = len(all_subjects_data)
         if num_loaded < self.config["train_subjects"]:
+            if not self.allow_simulated_data:
+                raise RuntimeError(
+                    f"Only loaded {num_loaded} real subjects but train_subjects={self.config['train_subjects']} "
+                    "and simulated data is disabled"
+                )
             logging.warning(f"Only loaded {num_loaded} real subjects, supplementing with {self.config['train_subjects'] - num_loaded} simulated subjects")
             
             for i in range(num_loaded, self.config["train_subjects"]):
@@ -265,6 +288,11 @@ class DataPipeline:
         target_samples = 1000  # Default number of samples
         
         if num_real_samples < target_samples:
+            if not self.allow_simulated_data:
+                raise RuntimeError(
+                    f"Only {num_real_samples} real samples found but target is {target_samples} "
+                    "and simulated data is disabled"
+                )
             logging.warning(f"Only {num_real_samples} real samples found, generating {target_samples - num_real_samples} simulated samples")
             
             sim_samples = target_samples - num_real_samples
@@ -284,6 +312,10 @@ class DataPipeline:
         
         else:
             # Use only real data if we have enough
+            if not self.allow_simulated_data and (
+                X_source is None or X_physio is None or X_voice is None or y_valence is None or y_arousal is None
+            ):
+                raise RuntimeError("Missing required modalities/labels and simulated fallback is disabled")
             X_source = X_source[:target_samples] if X_source is not None else np.random.randn(target_samples, self.config["cortical_nodes"], self.config["timesteps"])
             X_physio = X_physio[:target_samples] if X_physio is not None else np.random.randn(target_samples, 2)
             X_voice = X_voice[:target_samples] if X_voice is not None else np.random.randn(target_samples, 128)

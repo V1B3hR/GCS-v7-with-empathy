@@ -7,6 +7,7 @@ import logging
 import threading
 import queue
 import time
+import os
 from typing import Optional, Dict
 from dataclasses import dataclass
 
@@ -17,6 +18,7 @@ class PhysioStreamConfig:
     sampling_rate: int = 4  # Hz (lower rate for physio)
     window_size: float = 10.0  # seconds
     n_features: int = 24
+    allow_synthetic_fallback: bool = True
 
 
 class PhysioStreamAdapter:
@@ -24,6 +26,8 @@ class PhysioStreamAdapter:
     
     def __init__(self, config: PhysioStreamConfig):
         self.config = config
+        if not self.config.allow_synthetic_fallback:
+            raise RuntimeError("Synthetic physiological streaming is disabled")
         self.is_streaming = False
         self.data_queue = queue.Queue(maxsize=50)
         self.stream_thread = None
@@ -84,6 +88,7 @@ class VoiceStreamConfig:
     sampling_rate: int = 16000
     frame_duration: float = 1.0  # seconds per frame
     n_features: int = 128
+    allow_synthetic_fallback: bool = True
 
 
 class VoiceStreamAdapter:
@@ -91,6 +96,8 @@ class VoiceStreamAdapter:
     
     def __init__(self, config: VoiceStreamConfig):
         self.config = config
+        if not self.config.allow_synthetic_fallback:
+            raise RuntimeError("Synthetic voice streaming is disabled")
         self.is_streaming = False
         self.data_queue = queue.Queue(maxsize=20)
         self.stream_thread = None
@@ -147,15 +154,33 @@ class VoiceStreamAdapter:
 
 def create_physio_adapter(config: Dict) -> PhysioStreamAdapter:
     """Create physiological adapter from config"""
+    sim_cfg = config.get('simulation', {})
+    allow_synthetic = sim_cfg.get('enable_fallback')
+    if allow_synthetic is None:
+        env_value = os.environ.get("GCS_ALLOW_SIMULATED_DATA")
+        if env_value is None:
+            allow_synthetic = os.environ.get("GCS_ENV", "").strip().lower() != "production"
+        else:
+            allow_synthetic = env_value.strip().lower() in {"1", "true", "yes", "on"}
     physio_config = PhysioStreamConfig(
-        n_features=config.get('physio_features', 24)
+        n_features=config.get('physio_features', 24),
+        allow_synthetic_fallback=bool(allow_synthetic)
     )
     return PhysioStreamAdapter(physio_config)
 
 
 def create_voice_adapter(config: Dict) -> VoiceStreamAdapter:
     """Create voice adapter from config"""
+    sim_cfg = config.get('simulation', {})
+    allow_synthetic = sim_cfg.get('enable_fallback')
+    if allow_synthetic is None:
+        env_value = os.environ.get("GCS_ALLOW_SIMULATED_DATA")
+        if env_value is None:
+            allow_synthetic = os.environ.get("GCS_ENV", "").strip().lower() != "production"
+        else:
+            allow_synthetic = env_value.strip().lower() in {"1", "true", "yes", "on"}
     voice_config = VoiceStreamConfig(
-        n_features=config.get('voice_features', 128)
+        n_features=config.get('voice_features', 128),
+        allow_synthetic_fallback=bool(allow_synthetic)
     )
     return VoiceStreamAdapter(voice_config)
