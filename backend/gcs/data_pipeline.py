@@ -22,6 +22,10 @@ class DataPipeline:
             return True
         return env_value.strip().lower() in {"1", "true", "yes", "on"}
 
+    def _physio_feature_width(self) -> int:
+        """Returns the configured physiological feature width for simulated data."""
+        return int(self.config.get("physio_features", 24))
+
     def _simulate_source_localization(self, raw_eeg_data):
         """CONCEPTUAL: Simulates eLORETA source localization."""
         logging.info(f"Applying source localization to data of shape {raw_eeg_data.shape}...")
@@ -296,9 +300,10 @@ class DataPipeline:
             logging.warning(f"Only {num_real_samples} real samples found, generating {target_samples - num_real_samples} simulated samples")
             
             sim_samples = target_samples - num_real_samples
+            physio_feature_width = self._physio_feature_width()
             X_eeg_sim = np.random.randn(sim_samples, self.config["timesteps"], self.config["eeg_channels"])
             X_source_sim = self._simulate_source_localization(X_eeg_sim)
-            X_physio_sim = np.random.randn(sim_samples, 2)  # HRV, GSR
+            X_physio_sim = np.random.randn(sim_samples, physio_feature_width)
             X_voice_sim = np.random.randn(sim_samples, 128)  # Prosody features
             y_valence_sim = np.random.uniform(1, 9, sim_samples)
             y_arousal_sim = np.random.uniform(1, 9, sim_samples)
@@ -317,7 +322,7 @@ class DataPipeline:
             ):
                 raise RuntimeError("Missing required modalities/labels and simulated fallback is disabled")
             X_source = X_source[:target_samples] if X_source is not None else np.random.randn(target_samples, self.config["cortical_nodes"], self.config["timesteps"])
-            X_physio = X_physio[:target_samples] if X_physio is not None else np.random.randn(target_samples, 2)
+            X_physio = X_physio[:target_samples] if X_physio is not None else np.random.randn(target_samples, self._physio_feature_width())
             X_voice = X_voice[:target_samples] if X_voice is not None else np.random.randn(target_samples, 128)
             y_valence = y_valence[:target_samples] if y_valence is not None else np.random.uniform(1, 9, target_samples)
             y_arousal = y_arousal[:target_samples] if y_arousal is not None else np.random.uniform(1, 9, target_samples)

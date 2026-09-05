@@ -54,6 +54,14 @@ class AffectiveModel(keras.Model):
                 'eeg': True, 'physio': True, 'voice': True, 'text': False
             })
         self.enable_modalities = enable_modalities
+
+        eeg_config = config.get('model', {}).get('eeg_encoder', {})
+        if enable_modalities.get('eeg', True) and eeg_config.get('return_sequence', False):
+            raise ValueError(
+                "EEG encoder return_sequence=True is incompatible with MultimodalFusion, "
+                "which expects rank-2 modality embeddings. Disable return_sequence or "
+                "disable the EEG modality for this multimodal model."
+            )
         
         # Create encoders
         self.encoders = {}
