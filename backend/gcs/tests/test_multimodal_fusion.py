@@ -228,6 +228,19 @@ def test_invalid_mask_shape_raises_value_error():
         )
 
 
+def test_mismatched_modality_batch_sizes_raise_value_error():
+    fusion = MultimodalFusion(hidden_dim=16, attention_heads=4, dropout=0.0)
+
+    with pytest.raises((ValueError, tf.errors.InvalidArgumentError), match="batch dimension"):
+        fusion(
+            {
+                "eeg": tf.random.normal((2, 256)),
+                "physio": tf.random.normal((3, 128)),
+            },
+            training=False,
+        )
+
+
 def test_mc_uncertainty_does_not_update_batchnorm_statistics():
     tf.random.set_seed(7)
     fusion = MultimodalFusion(

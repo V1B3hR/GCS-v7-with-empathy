@@ -251,15 +251,27 @@ class MultimodalFusion(keras.Model):
             embedding = self._validate_embedding(embedding, modality_name)
             if reference_embedding is None:
                 reference_embedding = embedding
-            elif (
-                reference_embedding.shape[0] is not None
-                and embedding.shape[0] is not None
-                and reference_embedding.shape[0] != embedding.shape[0]
-            ):
-                raise ValueError(
-                    f"All modality embeddings must share the same batch dimension; "
-                    f"got {reference_embedding.shape[0]} and {embedding.shape[0]}."
-                )
+            else:
+                if (
+                    reference_embedding.shape[0] is not None
+                    and embedding.shape[0] is not None
+                    and reference_embedding.shape[0] != embedding.shape[0]
+                ):
+                    raise ValueError(
+                        f"All modality embeddings must share the same batch dimension; "
+                        f"got {reference_embedding.shape[0]} and {embedding.shape[0]}."
+                    )
+                with tf.control_dependencies([
+                    tf.debugging.assert_equal(
+                        tf.shape(reference_embedding)[0],
+                        tf.shape(embedding)[0],
+                        message=(
+                            "All modality embeddings must share the same batch "
+                            "dimension."
+                        ),
+                    )
+                ]):
+                    embedding = tf.identity(embedding)
             validated_embeddings[modality_name] = embedding
 
         if reference_embedding is None:
