@@ -95,3 +95,11 @@ neuromodulation:
   ultrasound_params:
     duration_s: 1.0
     intensity: 0.5
+
+# Explicit intervention consent gate
+consent:
+  request_ttl_seconds: 60
+  cooldown_seconds: 300
+  decline_cooldown_seconds: 300
+  defer_cooldown_seconds: 300
+  revoke_cooldown_seconds: 300
