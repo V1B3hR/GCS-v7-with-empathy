@@ -5,6 +5,12 @@ import sys
 import time
 import numpy as np
 
+try:
+    from gcs.serving.server import app as app
+except Exception as e:  # pragma: no cover - best effort export for ASGI runtime
+    app = None
+    logging.warning(f"FastAPI app export unavailable from gcs.serving.server: {e}")
+
 # --- GCS Core Modules ---
 from gcs.config_loader import load_config
 from gcs.training import Trainer

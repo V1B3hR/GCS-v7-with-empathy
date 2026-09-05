@@ -3,6 +3,8 @@ import time
 import logging
 from typing import Dict, Tuple, Optional, List
 from collections import deque
+import tempfile
+import yaml
 
 import numpy as np
 import tensorflow as tf
@@ -102,36 +104,28 @@ class ClosedLoopAgent:
             graph_path = config["graph_scaffold_path"]
             if not os.path.exists(graph_path):
                 raise FileNotFoundError(f"Graph scaffold file not found: {graph_path}")
-            self.inference_engine = GCSInference(foundational_model_path, graph_path)
-        except TypeError:
-            logging.info("Attempting GCSInference initialization with config file approach")
+
+            temp_config = {
+                "model_path": foundational_model_path,
+                "graph_path": graph_path,
+                "labels": {0: "LEFT_HAND", 1: "RIGHT_HAND"},
+                "batch_size": config.get("batch_size", 16),
+                "safe_mode": False,
+                "confidence_threshold": 0.4,
+                "monitoring": True,
+                "output_layers": None,
+                "attention_extractor": None
+            }
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as temp_file:
+                yaml.dump(temp_config, temp_file)
+                temp_config_path = temp_file.name
             try:
-                import tempfile
-                import yaml
-                temp_config = {
-                    "model_path": foundational_model_path,
-                    "graph_path": graph_path,
-                    "labels": {0: "LEFT_HAND", 1: "RIGHT_HAND"},
-                    "batch_size": config.get("batch_size", 16),
-                    "safe_mode": False,
-                    "confidence_threshold": 0.4,
-                    "monitoring": True,
-                    "output_layers": None,
-                    "attention_extractor": None
-                }
-                with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as temp_file:
-                    yaml.dump(temp_config, temp_file)
-                    temp_config_path = temp_file.name
+                self.inference_engine = GCSInference(temp_config_path)
+            finally:
                 try:
-                    self.inference_engine = GCSInference(temp_config_path)
-                finally:
-                    try:
-                        os.unlink(temp_config_path)
-                    except OSError as e:
-                        logging.warning(f"Failed to clean up temporary config file {temp_config_path}: {e}")
-            except Exception as e:
-                logging.error(f"Failed to initialize GCSInference with config file approach: {e}")
-                raise
+                    os.unlink(temp_config_path)
+                except OSError as e:
+                    logging.warning(f"Failed to clean up temporary config file {temp_config_path}: {e}")
         except Exception as e:
             logging.error(f"Failed to initialize GCS inference engine: {e}")
             raise
@@ -297,6 +291,34 @@ class ClosedLoopAgent:
             logging.error(f"Affective inference failed: {e}")
             raise
 
+    def _extract_cognitive_state(self, prediction_results: List[Dict]) -> Dict[str, Optional[float]]:
+        """Normalize inference output into a single cognitive state for policy logic."""
+        if not isinstance(prediction_results, list) or not prediction_results:
+            raise ValueError("Inference output must be a non-empty list")
+
+        first = prediction_results[0]
+        if not isinstance(first, dict):
+            raise ValueError("Inference output item must be a dictionary")
+
+        payload = first.get("mi_output") if "mi_output" in first else first
+        if not isinstance(payload, dict):
+            raise ValueError("Inference output payload must be a dictionary")
+        if "error" in payload:
+            raise RuntimeError(f"Inference output error: {payload['error']}")
+
+        intent = payload.get("label")
+        confidence = payload.get("confidence", 0.0)
+        attention = payload.get("attention")
+
+        if intent is None:
+            raise ValueError("Inference output missing 'label'")
+        try:
+            confidence = float(confidence)
+        except (TypeError, ValueError):
+            raise ValueError(f"Inference output has invalid confidence: {confidence}")
+
+        return {"intent": intent, "confidence": confidence, "attention": attention}
+
     def run_cycle(self, live_data: Dict):
         if not isinstance(live_data, dict):
             raise TypeError(f"live_data must be a dictionary, got {type(live_data)}")
@@ -316,11 +338,14 @@ class ClosedLoopAgent:
                     raise ValueError("source_eeg cannot be empty")
                 if adj_matrix.size == 0:
                     raise ValueError("adj_matrix cannot be empty")
-                intent, conf, attention = self.inference_engine.predict([source_chunk, adj_matrix])
-                cognitive_state = {"intent": intent, "confidence": float(conf)}
+                prediction_results = self.inference_engine.predict(source_chunk)
+                cognitive_state = self._extract_cognitive_state(prediction_results)
                 valence, arousal = self._run_affective_inference(live_data)
                 affective_state = {"valence": valence, "arousal": arousal}
-                logging.info(f"[SENSE] Cognitive: {intent} ({conf:.2f}) | Affective: Valence={valence:.2f}, Arousal={arousal:.2f}")
+                logging.info(
+                    f"[SENSE] Cognitive: {cognitive_state['intent']} ({cognitive_state['confidence']:.2f}) "
+                    f"| Affective: Valence={valence:.2f}, Arousal={arousal:.2f}"
+                )
             except Exception as e:
                 logging.error(f"SENSE phase failed: {e}")
                 raise RuntimeError(f"SENSE phase failed: {e}")

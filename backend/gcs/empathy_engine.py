@@ -300,13 +300,17 @@ class OpenBCIInterface:
         'gamma': (30, 50)
     }
     
-    def __init__(self, board_type: str = 'synthetic', serial_port: str = '', 
-                 sampling_rate: int = 250):
+    def __init__(self, board_type: str = 'synthetic', serial_port: str = '',
+                 sampling_rate: int = 250, allow_synthetic_when_no_stream: bool = True):
         self.board = None
         self.board_type = board_type
         self.sampling_rate = sampling_rate
+        self.allow_synthetic_when_no_stream = allow_synthetic_when_no_stream
         self.is_streaming = False
         self.data_queue = queue.Queue(maxsize=1000)
+
+        if self.board_type == 'synthetic' and not self.allow_synthetic_when_no_stream:
+            raise RuntimeError("Synthetic OpenBCI mode is disabled")
         
         if BRAINFLOW_AVAILABLE:
             board_ids = {
@@ -322,9 +326,13 @@ class OpenBCIInterface:
                 self.board = BoardShim(board_ids.get(board_type, BoardIds.SYNTHETIC_BOARD), params)
                 logging.info(f"OpenBCI initialized: {board_type}")
             except Exception as e:
+                if not self.allow_synthetic_when_no_stream:
+                    raise RuntimeError(f"Failed to initialize BoardShim and synthetic fallback is disabled: {e}") from e
                 logging.warning(f"Failed to initialize BoardShim: {e}. Falling back to simulation mode.")
                 self.board = None
         else:
+            if not self.allow_synthetic_when_no_stream:
+                raise RuntimeError("BrainFlow unavailable and synthetic fallback is disabled")
             logging.warning("BrainFlow not available - simulation mode")
     
     def start_stream(self):
@@ -371,6 +379,8 @@ class OpenBCIInterface:
     def get_latest_window(self, window_size: float = 4.0) -> Optional[np.ndarray]:
         """Get latest time window of EEG data as (channels, samples)"""
         if not self.is_streaming:
+            if not self.allow_synthetic_when_no_stream:
+                return None
             # Simulation mode - generate synthetic data
             n_channels = 8
             n_samples = int(window_size * self.sampling_rate)
@@ -713,10 +723,18 @@ class EnhancedEmpathyEngine:
                 for k, v in config.items():
                     setattr(base, k, v)
             self.config = base
+        allow_synthetic = getattr(self.config, "allow_synthetic_when_no_stream", True)
+        env_override = os.environ.get("GCS_ALLOW_SIMULATED_DATA")
+        if env_override is not None:
+            allow_synthetic = env_override.strip().lower() in {"1", "true", "yes", "on"}
+        elif os.environ.get("GCS_ENV", "").strip().lower() == "production":
+            allow_synthetic = False
+
         self.openbci = OpenBCIInterface(
             board_type=self.config.board_type,
             serial_port=self.config.serial_port,
-            sampling_rate=self.config.sampling_rate
+            sampling_rate=self.config.sampling_rate,
+            allow_synthetic_when_no_stream=bool(allow_synthetic)
         )
         self.emotion_model = EmotionRecognitionModel(
             n_channels=self.config.n_channels,

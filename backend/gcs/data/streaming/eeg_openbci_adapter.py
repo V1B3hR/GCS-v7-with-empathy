@@ -10,6 +10,7 @@ import logging
 import threading
 import queue
 import time
+import os
 from typing import Optional, Dict
 from dataclasses import dataclass
 
@@ -34,6 +35,7 @@ class EEGStreamConfig:
     window_size: float = 4.0  # seconds
     enable_filters: bool = True
     notch_freq: float = 60.0  # Hz (50 or 60)
+    allow_synthetic_fallback: bool = True
 
 
 class EEGStreamAdapter:
@@ -64,7 +66,16 @@ class EEGStreamAdapter:
     
     def _initialize_board(self):
         """Initialize BrainFlow board"""
-        if not BRAINFLOW_AVAILABLE or self.config.board_type == 'synthetic':
+        if self.config.board_type == 'synthetic':
+            if not self.config.allow_synthetic_fallback:
+                raise RuntimeError("Synthetic EEG streaming is disabled")
+            logging.info("Using synthetic EEG stream")
+            self.board = None
+            return
+
+        if not BRAINFLOW_AVAILABLE:
+            if not self.config.allow_synthetic_fallback:
+                raise RuntimeError("BrainFlow is unavailable and synthetic fallback is disabled")
             logging.info("Using synthetic EEG stream")
             self.board = None
             return
@@ -92,6 +103,8 @@ class EEGStreamAdapter:
             logging.info(f"BrainFlow board initialized: {self.config.board_type}")
             
         except Exception as e:
+            if not self.config.allow_synthetic_fallback:
+                raise RuntimeError(f"Failed to initialize BrainFlow and synthetic fallback is disabled: {e}") from e
             logging.warning(f"Failed to initialize BrainFlow: {e}. Using synthetic data.")
             self.board = None
     
@@ -258,12 +271,20 @@ def create_eeg_adapter(config: Dict) -> EEGStreamAdapter:
         EEGStreamAdapter instance
     """
     streaming_config = config.get('simulation', {})
+    allow_synthetic = streaming_config.get('enable_fallback')
+    if allow_synthetic is None:
+        env_value = os.environ.get("GCS_ALLOW_SIMULATED_DATA")
+        if env_value is None:
+            allow_synthetic = os.environ.get("GCS_ENV", "").strip().lower() != "production"
+        else:
+            allow_synthetic = env_value.strip().lower() in {"1", "true", "yes", "on"}
     
     stream_config = EEGStreamConfig(
         board_type=streaming_config.get('board_type', 'synthetic'),
         sampling_rate=streaming_config.get('synthetic_sample_rate', 250),
         n_channels=streaming_config.get('synthetic_eeg_channels', 8),
-        window_size=4.0
+        window_size=4.0,
+        allow_synthetic_fallback=bool(allow_synthetic)
     )
     
     return EEGStreamAdapter(stream_config)
