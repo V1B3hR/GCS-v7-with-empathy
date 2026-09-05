@@ -5,6 +5,8 @@ class NeuromodulationController:
     """
     An abstraction layer to control external, physical neuromodulation hardware.
     This class acts as the "driver," translating software commands into hardware actions.
+    It performs immediate low-level hardware delivery and must only be called after an
+    agent-side explicit consent gate has authorized the exact request.
     """
     def __init__(self, config: dict):
         self.config = config.get("neuromodulation", {})
@@ -31,14 +33,14 @@ class NeuromodulationController:
         self.target = target
 
     def configure_and_trigger(self, modality: str, params: dict):
-        """Configures and then immediately fires the stimulus."""
+        """Configure and immediately fire hardware for a pre-authorized intervention."""
         if not self.is_ready:
             logging.error("[HW] Cannot trigger: Controller is not ready or disabled.")
-            return
+            raise RuntimeError("Controller is not ready or is disabled")
 
         if modality not in self.config.get("available_modalities", []):
             logging.error(f"[HW] Modality '{modality}' not supported.")
-            return
+            raise ValueError(f"Modality '{modality}' not supported")
         
         duration = params.get('duration_s', 0.5)
         logging.warning(f"[HW_CMD] FIRING '{modality.upper()}' STIMULUS on '{self.target.upper()}' for {duration}s.")
@@ -48,3 +50,4 @@ class NeuromodulationController:
         time.sleep(duration)
         
         logging.warning(f"[HW] Stimulus delivery complete.")
+        return {"status": "completed", "modality": modality, "target": self.target, "duration_s": duration}

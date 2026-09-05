@@ -12,6 +12,7 @@ import tensorflow as tf
 # Enable unsafe deserialization for Lambda layers
 tf.keras.config.enable_unsafe_deserialization()
 
+from .consent_gate import ConsentDecisionError, ConsentExecutionError, InterventionConsentGate
 from .inference import GCSInference
 from .neuromodulation_controller import NeuromodulationController
 from .online_learning_module import OnlineLearningModule
@@ -144,6 +145,12 @@ class ClosedLoopAgent:
             raise
 
         try:
+            self.consent_gate = self._build_consent_gate(config.get("consent"))
+        except Exception as e:
+            logging.error(f"Failed to initialize InterventionConsentGate: {e}")
+            raise
+
+        try:
             self.feedback_detector = AdaptiveFeedbackDetector(config)
         except Exception as e:
             logging.error(f"Failed to initialize AdaptiveFeedbackDetector: {e}")
@@ -164,6 +171,33 @@ class ClosedLoopAgent:
 
         logging.info("Closed-Loop Agent initialized successfully with all components loaded.")
 
+    def _build_consent_gate(self, consent_config: Optional[Dict]) -> InterventionConsentGate:
+        """Create the explicit intervention consent gate with safe defaults."""
+        if consent_config is None:
+            consent_config = {}
+        if not isinstance(consent_config, dict):
+            raise ValueError("consent config section must be a dictionary")
+
+        cooldown_default = consent_config.get("cooldown_seconds", 300)
+        gate = InterventionConsentGate(
+            request_ttl_seconds=consent_config.get("request_ttl_seconds", 60),
+            decline_cooldown_seconds=consent_config.get("decline_cooldown_seconds", cooldown_default),
+            defer_cooldown_seconds=consent_config.get("defer_cooldown_seconds", cooldown_default),
+            revoke_cooldown_seconds=consent_config.get("revoke_cooldown_seconds", cooldown_default),
+        )
+        return gate
+
+    def _get_neuromodulation_target(self) -> str:
+        target = self.config.get("neuromodulation", {}).get("default_target_nerve", getattr(self.mod_controller, "target", "unknown"))
+        if not isinstance(target, str) or not target.strip():
+            raise ValueError("neuromodulation.default_target_nerve must be a non-empty string")
+        return target.strip()
+
+    def _append_session_event(self, event_type: str, **metadata) -> None:
+        event = {"time": time.time(), "event": event_type}
+        event.update(metadata)
+        self.session_history.append(event)
+
     def _policy_engine(self, cognitive_state: Dict, affective_state: Dict) -> Tuple[Optional[str], Optional[Dict]]:
         if not isinstance(cognitive_state, dict):
             raise TypeError(f"cognitive_state must be dictionary, got {type(cognitive_state)}")
@@ -183,9 +217,10 @@ class ClosedLoopAgent:
 
         # ---- SESSION MEMORY ADDITION: Contextual decision based on trends ----
         # example: if last 10 measurements valence below 3.0, escalate or suggest a soft intervention
-        n_trend = min(10, len(self.session_history))
+        affective_history = [entry for entry in self.session_history if "valence" in entry]
+        n_trend = min(10, len(affective_history))
         if n_trend >= 5:
-            recent_vals = [e["valence"] for e in list(self.session_history)[-n_trend:]]
+            recent_vals = [entry["valence"] for entry in affective_history[-n_trend:]]
             mean_val = sum(recent_vals) / len(recent_vals)
             if mean_val < 3.0:
                 logging.info(f"[SESSION_MEM] Prolonged low valence detected (mean of last {n_trend}: {mean_val:.2f})")
@@ -369,8 +404,29 @@ class ClosedLoopAgent:
                 raise RuntimeError(f"DECIDE phase failed: {e}")
             if modality:
                 try:
-                    logging.info(f"[ACTION] Proposing {modality} intervention to user...")
-                    self.mod_controller.configure_and_trigger(modality, params)
+                    target = self._get_neuromodulation_target()
+                    proposal_result = self.consent_gate.propose(modality, params or {}, target)
+                    request = proposal_result.get("request")
+                    if proposal_result.get("created") and request:
+                        logging.info(
+                            f"[ACTION] Created consent request {request['request_id']} for {request['modality']} on {request['target']}."
+                        )
+                        self._append_session_event(
+                            "consent_proposed",
+                            request_id=request["request_id"],
+                            modality=request["modality"],
+                            target=request["target"],
+                            status=request["status"],
+                        )
+                    elif proposal_result.get("reason") == "cooldown":
+                        logging.info(
+                            f"[ACTION] Consent request suppressed during {proposal_result.get('cooldown_reason')} cooldown "
+                            f"until {proposal_result.get('cooldown_until')}."
+                        )
+                    elif request:
+                        logging.debug(
+                            f"[ACTION] Consent request {request['request_id']} already active with status {request['status']}."
+                        )
                 except Exception as e:
                     logging.error(f"ACT phase failed: {e}")
                     logging.warning("Continuing despite ACT phase failure")
@@ -391,6 +447,7 @@ class ClosedLoopAgent:
 
     def get_status(self) -> Dict:
         try:
+            consent_request = self.consent_gate.get_current_request() if hasattr(self, 'consent_gate') and self.consent_gate else None
             return {
                 "is_running": self.is_running,
                 "has_inference_engine": hasattr(self, 'inference_engine') and self.inference_engine is not None,
@@ -399,7 +456,15 @@ class ClosedLoopAgent:
                 "has_feedback_detector": hasattr(self, 'feedback_detector') and self.feedback_detector is not None,
                 "has_olm": hasattr(self, 'olm') and self.olm is not None,
                 # ---- SESSION MEMORY STATUS ----
-                "session_history_len": len(self.session_history)
+                "session_history_len": len(self.session_history),
+                "consent_request": (
+                    {
+                        "request_id": consent_request["request_id"],
+                        "status": consent_request["status"],
+                        "expires_at": consent_request["expires_at"],
+                    }
+                    if consent_request else None
+                ),
                 # ------------------------------
             }
         except Exception as e:
@@ -411,3 +476,108 @@ class ClosedLoopAgent:
         """Returns the tracked session emotional states history."""
         return list(self.session_history)
     # ---------------------------------------------
+
+    def get_pending_consent_request(self) -> Optional[Dict]:
+        """Return the current consent request for presentation to an authenticated UI/operator."""
+        request = self.consent_gate.get_current_request()
+        if request and request.get("status") in {"pending_consent", "approved"}:
+            return request
+        return None
+
+    def record_consent_decision(self, request_id: str, decision: str, actor_id: str) -> Dict:
+        """
+        Record an explicit authenticated human/operator decision for the current request.
+
+        Callers must authenticate and authorize `actor_id` before invoking this method.
+        Model output and inferred signals are never valid consent sources.
+        """
+        try:
+            decision_record = self.consent_gate.record_decision(request_id, decision, actor_id)
+        except ConsentDecisionError:
+            raise
+        self._append_session_event(
+            "consent_decision",
+            request_id=decision_record["request_id"],
+            decision=decision_record["decision"],
+            actor_id=decision_record["decision_actor_id"],
+            status=decision_record["status"],
+        )
+        return decision_record
+
+    def execute_approved_request(self, request_id: str) -> Dict:
+        """
+        Execute a specific approved consent request exactly once.
+
+        Approval is consumed before low-level hardware delivery so failures are surfaced
+        for audit and are not automatically retried.
+        """
+        current_request = self.consent_gate.get_current_request()
+        if not current_request:
+            raise ConsentExecutionError("no consent request is available for execution")
+        execution_payload = self.consent_gate.authorize_execution(
+            request_id=request_id,
+            modality=current_request["modality"],
+            params=current_request["params"],
+            target=current_request["target"],
+        )
+        try:
+            self.mod_controller.set_target(execution_payload["target"])
+            controller_result = self.mod_controller.configure_and_trigger(
+                execution_payload["modality"],
+                execution_payload["params"],
+            )
+        except Exception as exc:
+            self._append_session_event(
+                "intervention_delivery_failed",
+                request_id=execution_payload["request_id"],
+                modality=execution_payload["modality"],
+                target=execution_payload["target"],
+                error=str(exc),
+            )
+            raise RuntimeError(f"Hardware delivery failed for request {request_id}: {exc}") from exc
+
+        result = {
+            "request_id": execution_payload["request_id"],
+            "status": "delivered",
+            "modality": execution_payload["modality"],
+            "target": execution_payload["target"],
+            "params": execution_payload["params"],
+            "controller_result": controller_result,
+        }
+        self._append_session_event(
+            "intervention_delivered",
+            request_id=result["request_id"],
+            modality=result["modality"],
+            target=result["target"],
+            status=result["status"],
+        )
+        return result
+
+    def record_intervention_feedback(self, request_id: str, feedback: str, actor_id: str) -> Dict:
+        """Record post-intervention feedback without affecting future consent state."""
+        allowed_feedback = {"helpful", "neutral", "unhelpful", "too_intense", "adverse_effect"}
+        if not isinstance(feedback, str) or feedback.strip() not in allowed_feedback:
+            raise ValueError(f"feedback must be one of {sorted(allowed_feedback)}")
+        if not isinstance(actor_id, str) or not actor_id.strip():
+            raise ValueError("actor_id must be a non-empty authenticated actor identifier")
+
+        delivered_request = any(
+            entry.get("request_id") == request_id and entry.get("event") == "intervention_delivered"
+            for entry in self.session_history
+        )
+        if not delivered_request:
+            raise ValueError(f"Post-intervention feedback requires a delivered request_id, got {request_id!r}")
+
+        feedback_record = {
+            "request_id": request_id,
+            "feedback": feedback.strip(),
+            "actor_id": actor_id.strip(),
+            "recorded_at": time.time(),
+        }
+        self._append_session_event(
+            "intervention_feedback",
+            request_id=feedback_record["request_id"],
+            feedback=feedback_record["feedback"],
+            actor_id=feedback_record["actor_id"],
+        )
+        return feedback_record
