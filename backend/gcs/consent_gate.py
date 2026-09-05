@@ -112,7 +112,8 @@ class InterventionConsentGate:
     `record_decision()`. Model output, inferred affect, EEG, voice, physiological
     signals, or other automated signals are never valid consent sources.
     Requests remain bound to their TTL even after approval, so stale approvals
-    expire instead of authorizing delayed hardware delivery.
+    expire instead of authorizing delayed hardware delivery. Approved requests
+    may be revoked while they remain unexpired; after TTL they fail closed as expired.
     """
 
     def __init__(

@@ -536,7 +536,7 @@ class ClosedLoopAgent:
                 target=execution_payload["target"],
                 error=str(exc),
             )
-            raise RuntimeError(f"Hardware delivery failed for request {request_id}: {exc}") from exc
+            raise
 
         result = {
             "request_id": execution_payload["request_id"],
