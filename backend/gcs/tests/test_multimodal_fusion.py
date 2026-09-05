@@ -241,6 +241,13 @@ def test_mismatched_modality_batch_sizes_raise_value_error():
         )
 
 
+def test_unknown_modality_keys_raise_value_error():
+    fusion = MultimodalFusion(hidden_dim=16, attention_heads=4, dropout=0.0)
+
+    with pytest.raises(ValueError, match="Unsupported modalities for fusion"):
+        fusion({"image": tf.random.normal((2, 64))}, training=False)
+
+
 def test_mc_uncertainty_does_not_update_batchnorm_statistics():
     tf.random.set_seed(7)
     fusion = MultimodalFusion(

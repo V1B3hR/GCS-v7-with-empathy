@@ -241,6 +241,20 @@ class MultimodalFusion(keras.Model):
                             embeddings_dict: Dict[str, tf.Tensor],
                             masks_dict: Optional[Dict[str, tf.Tensor]] = None):
         """Project known modalities to a common width and align them to stable slots."""
+        unknown_modalities = sorted(set(embeddings_dict) - set(self.MODALITY_ORDER))
+        if unknown_modalities:
+            raise ValueError(
+                f"Unsupported modalities for fusion: {unknown_modalities}. "
+                f"Supported modalities are {self.MODALITY_ORDER}."
+            )
+        if masks_dict:
+            unknown_masks = sorted(set(masks_dict) - set(self.MODALITY_ORDER))
+            if unknown_masks:
+                raise ValueError(
+                    f"Unsupported modality masks for fusion: {unknown_masks}. "
+                    f"Supported modalities are {self.MODALITY_ORDER}."
+                )
+
         validated_embeddings = {}
         reference_embedding = None
 
