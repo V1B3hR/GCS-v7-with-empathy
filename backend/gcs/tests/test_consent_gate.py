@@ -88,17 +88,13 @@ def build_agent(clock, *, should_fail=False):
             "default_target_nerve": "vagus",
             "available_modalities": ["ultrasound"],
             "ultrasound_params": {"duration_s": 1.0, "intensity": 0.5},
-        }
+        },
+        "consent": {"request_ttl_seconds": 60, "cooldown_seconds": 300},
     }
     agent.is_running = False
     agent.mod_controller = FakeController(should_fail=should_fail)
-    agent.consent_gate = InterventionConsentGate(
-        request_ttl_seconds=60,
-        decline_cooldown_seconds=300,
-        defer_cooldown_seconds=300,
-        revoke_cooldown_seconds=300,
-        time_fn=clock.time,
-    )
+    agent.consent_gate = agent._build_consent_gate(agent.config["consent"])
+    agent.consent_gate._time_fn = clock.time
     agent.session_history = deque(maxlen=25)
     agent.inference_engine = types.SimpleNamespace(
         predict=lambda _source: [{"label": "PAIN_SIGNATURE", "confidence": 0.95}]
@@ -246,6 +242,16 @@ class TestInterventionConsentGate(unittest.TestCase):
 
 
 class TestClosedLoopConsentIntegration(unittest.TestCase):
+    def test_build_consent_gate_uses_shared_cooldown_default(self):
+        closed_loop_cls = load_closed_loop_agent_class()
+        agent = closed_loop_cls.__new__(closed_loop_cls)
+
+        gate = agent._build_consent_gate({"request_ttl_seconds": 60, "cooldown_seconds": 123})
+
+        self.assertEqual(gate.decline_cooldown_seconds, 123)
+        self.assertEqual(gate.defer_cooldown_seconds, 123)
+        self.assertEqual(gate.revoke_cooldown_seconds, 123)
+
     def test_policy_recommendation_does_not_invoke_hardware(self):
         clock = FakeClock()
         agent = build_agent(clock)
