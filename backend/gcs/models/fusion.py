@@ -109,11 +109,25 @@ class MultimodalFusion(keras.Model):
     def _validate_embedding(self, embedding: tf.Tensor, modality_name: str) -> tf.Tensor:
         """Ensure modality embeddings are rank-2 tensors."""
         embedding = tf.convert_to_tensor(embedding)
-        if embedding.shape.rank != 2:
+        static_rank = embedding.shape.rank
+        if static_rank is not None and static_rank != 2:
             raise ValueError(
                 f"{modality_name} embedding must have shape (batch, embedding_dim); "
-                f"received rank {embedding.shape.rank} with shape {embedding.shape}."
+                f"received rank {static_rank} with shape {embedding.shape}."
             )
+        if static_rank is None:
+            embedding = tf.identity(embedding)
+            with tf.control_dependencies([
+                tf.debugging.assert_rank(
+                    embedding,
+                    2,
+                    message=(
+                        f"{modality_name} embedding must have shape "
+                        "(batch, embedding_dim)."
+                    ),
+                )
+            ]):
+                embedding = tf.identity(embedding)
         return embedding
 
     def _normalize_mask(self,
@@ -122,17 +136,63 @@ class MultimodalFusion(keras.Model):
                         modality_name: str) -> tf.Tensor:
         """Normalize per-modality masks to shape (batch, 1)."""
         mask = tf.convert_to_tensor(mask)
-        rank = mask.shape.rank
-        if rank not in (1, 2):
+        static_rank = mask.shape.rank
+        if static_rank not in (1, 2, None):
             raise ValueError(
                 f"{modality_name} mask must have shape (batch,) or (batch, 1); "
                 f"received shape {mask.shape}."
             )
-        if rank == 2 and mask.shape[-1] not in (1, None):
+        if static_rank == 2 and mask.shape[-1] not in (1, None):
             raise ValueError(
                 f"{modality_name} mask must have shape (batch,) or (batch, 1); "
                 f"received shape {mask.shape}."
             )
+
+        if static_rank is None:
+            message = (
+                f"{modality_name} mask must have shape (batch,) or (batch, 1)."
+            )
+            mask = tf.identity(mask)
+            with tf.control_dependencies([
+                tf.debugging.assert_greater_equal(
+                    tf.rank(mask),
+                    1,
+                    message=message,
+                ),
+                tf.debugging.assert_less_equal(
+                    tf.rank(mask),
+                    2,
+                    message=message,
+                ),
+            ]):
+                mask = tf.identity(mask)
+            if tf.executing_eagerly():
+                dynamic_rank = int(tf.rank(mask).numpy())
+                if dynamic_rank == 2:
+                    with tf.control_dependencies([
+                        tf.debugging.assert_equal(
+                            tf.shape(mask)[-1],
+                            1,
+                            message=message,
+                        )
+                    ]):
+                        mask = tf.identity(mask)
+            else:
+                def _assert_last_dim():
+                    with tf.control_dependencies([
+                        tf.debugging.assert_equal(
+                            tf.shape(mask)[-1],
+                            1,
+                            message=message,
+                        )
+                    ]):
+                        return tf.identity(mask)
+
+                mask = tf.cond(
+                    tf.equal(tf.rank(mask), 2),
+                    _assert_last_dim,
+                    lambda: tf.identity(mask),
+                )
 
         if (
             embedding.shape[0] is not None
@@ -143,6 +203,18 @@ class MultimodalFusion(keras.Model):
                 f"{modality_name} mask batch dimension {mask.shape[0]} does not match "
                 f"embedding batch dimension {embedding.shape[0]}."
             )
+
+        with tf.control_dependencies([
+            tf.debugging.assert_equal(
+                tf.shape(mask)[0],
+                tf.shape(embedding)[0],
+                message=(
+                    f"{modality_name} mask batch dimension must match the "
+                    "embedding batch dimension."
+                ),
+            )
+        ]):
+            mask = tf.identity(mask)
 
         mask = tf.cast(mask, embedding.dtype)
         return tf.reshape(mask, [-1, 1])
