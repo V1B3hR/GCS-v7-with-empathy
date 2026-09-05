@@ -560,7 +560,7 @@ class ClosedLoopAgent:
         allowed_feedback = {"helpful", "neutral", "unhelpful", "too_intense", "adverse_effect"}
         if not isinstance(feedback, str):
             raise ValueError(f"feedback must be one of {sorted(allowed_feedback)}")
-        normalized_feedback = feedback.strip()
+        normalized_feedback = feedback.strip().lower()
         if normalized_feedback not in allowed_feedback:
             raise ValueError(f"feedback must be one of {sorted(allowed_feedback)}")
         if not isinstance(actor_id, str) or not actor_id.strip():

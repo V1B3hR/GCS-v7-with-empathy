@@ -279,7 +279,7 @@ class TestClosedLoopConsentIntegration(unittest.TestCase):
 
         agent.record_consent_decision(request["request_id"], "accept", "user-123")
         agent.execute_approved_request(request["request_id"])
-        feedback = agent.record_intervention_feedback(request["request_id"], "helpful ", "user-123")
+        feedback = agent.record_intervention_feedback(request["request_id"], "Helpful ", "user-123")
 
         self.assertEqual(feedback["request_id"], request["request_id"])
         self.assertEqual(feedback["feedback"], "helpful")
