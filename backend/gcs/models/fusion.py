@@ -318,7 +318,8 @@ class MultimodalFusion(keras.Model):
         )
         masked_embeddings = stacked_embeddings * stacked_masks
 
-        mask_counts = tf.reduce_sum(stacked_masks, axis=1)
+        mask_weights = tf.broadcast_to(stacked_masks, tf.shape(stacked_embeddings))
+        mask_counts = tf.reduce_sum(mask_weights, axis=1)
         gate_inputs = tf.math.divide_no_nan(
             tf.reduce_sum(masked_embeddings, axis=1),
             mask_counts,
@@ -344,7 +345,7 @@ class MultimodalFusion(keras.Model):
             attended = attended * stacked_masks
             fused = tf.math.divide_no_nan(
                 tf.reduce_sum(attended, axis=1),
-                tf.reduce_sum(stacked_masks, axis=1),
+                tf.reduce_sum(mask_weights, axis=1),
             )
         else:
             # Concat mode always keeps MODALITY_ORDER slots, using zero vectors for
