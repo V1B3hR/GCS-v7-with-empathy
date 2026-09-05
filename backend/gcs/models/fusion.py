@@ -217,6 +217,24 @@ class MultimodalFusion(keras.Model):
             mask = tf.identity(mask)
 
         mask = tf.cast(mask, embedding.dtype)
+        with tf.control_dependencies([
+            tf.debugging.assert_greater_equal(
+                mask,
+                tf.zeros_like(mask),
+                message=f"{modality_name} mask values must be 0 or 1.",
+            ),
+            tf.debugging.assert_less_equal(
+                mask,
+                tf.ones_like(mask),
+                message=f"{modality_name} mask values must be 0 or 1.",
+            ),
+            tf.debugging.assert_near(
+                mask,
+                tf.round(mask),
+                message=f"{modality_name} mask values must be 0 or 1.",
+            ),
+        ]):
+            mask = tf.identity(mask)
         return tf.reshape(mask, [-1, 1])
 
     def _prepare_modalities(self,
