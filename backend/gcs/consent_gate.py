@@ -79,6 +79,8 @@ class ConsentRequest:
     decision_actor_id: Optional[str] = None
     decision_at: Optional[float] = None
     consumed_at: Optional[float] = None
+    expired_at: Optional[float] = None
+    expired_by: Optional[str] = None
     cooldown_until: Optional[float] = None
     cooldown_reason: Optional[str] = None
 
@@ -95,6 +97,8 @@ class ConsentRequest:
             "decision_actor_id": self.decision_actor_id,
             "decision_at": _isoformat(self.decision_at),
             "consumed_at": _isoformat(self.consumed_at),
+            "expired_at": _isoformat(self.expired_at),
+            "expired_by": self.expired_by,
             "cooldown_until": _isoformat(self.cooldown_until),
             "cooldown_reason": self.cooldown_reason,
         }
@@ -107,6 +111,8 @@ class InterventionConsentGate:
     Callers must authenticate and authorize human decision actors before calling
     `record_decision()`. Model output, inferred affect, EEG, voice, physiological
     signals, or other automated signals are never valid consent sources.
+    Requests remain bound to their TTL even after approval, so stale approvals
+    expire instead of authorizing delayed hardware delivery.
     """
 
     def __init__(
@@ -152,9 +158,8 @@ class InterventionConsentGate:
         now = self._now() if now is None else float(now)
         if self._request and self._request.status in ACTIVE_STATUSES and now >= self._request.expires_at:
             self._request.status = CONSENT_EXPIRED
-            self._request.decision = "expired"
-            self._request.decision_at = now
-            self._request.decision_actor_id = self._request.decision_actor_id or "system"
+            self._request.expired_at = now
+            self._request.expired_by = "system"
 
     def _clear_cooldown_if_elapsed(self, now: Optional[float] = None) -> None:
         now = self._now() if now is None else float(now)

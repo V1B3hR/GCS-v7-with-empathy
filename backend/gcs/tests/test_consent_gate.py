@@ -279,9 +279,10 @@ class TestClosedLoopConsentIntegration(unittest.TestCase):
 
         agent.record_consent_decision(request["request_id"], "accept", "user-123")
         agent.execute_approved_request(request["request_id"])
-        feedback = agent.record_intervention_feedback(request["request_id"], "helpful", "user-123")
+        feedback = agent.record_intervention_feedback(request["request_id"], "helpful ", "user-123")
 
         self.assertEqual(feedback["request_id"], request["request_id"])
+        self.assertEqual(feedback["feedback"], "helpful")
         self.assertEqual(len(agent.mod_controller.calls), 1)
         self.assertIsNone(agent.get_pending_consent_request())
         with self.assertRaises(ConsentExecutionError):

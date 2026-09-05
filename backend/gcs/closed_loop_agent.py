@@ -514,6 +514,8 @@ class ClosedLoopAgent:
         current_request = self.consent_gate.get_current_request()
         if not current_request:
             raise ConsentExecutionError("no consent request is available for execution")
+        if current_request["request_id"] != request_id:
+            raise ConsentExecutionError("execution request_id does not match the current consent request")
         execution_payload = self.consent_gate.authorize_execution(
             request_id=request_id,
             modality=current_request["modality"],
@@ -556,7 +558,10 @@ class ClosedLoopAgent:
     def record_intervention_feedback(self, request_id: str, feedback: str, actor_id: str) -> Dict:
         """Record post-intervention feedback without affecting future consent state."""
         allowed_feedback = {"helpful", "neutral", "unhelpful", "too_intense", "adverse_effect"}
-        if not isinstance(feedback, str) or feedback.strip() not in allowed_feedback:
+        if not isinstance(feedback, str):
+            raise ValueError(f"feedback must be one of {sorted(allowed_feedback)}")
+        normalized_feedback = feedback.strip()
+        if normalized_feedback not in allowed_feedback:
             raise ValueError(f"feedback must be one of {sorted(allowed_feedback)}")
         if not isinstance(actor_id, str) or not actor_id.strip():
             raise ValueError("actor_id must be a non-empty authenticated actor identifier")
@@ -570,7 +575,7 @@ class ClosedLoopAgent:
 
         feedback_record = {
             "request_id": request_id,
-            "feedback": feedback.strip(),
+            "feedback": normalized_feedback,
             "actor_id": actor_id.strip(),
             "recorded_at": time.time(),
         }
