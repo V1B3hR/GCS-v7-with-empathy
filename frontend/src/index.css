@@ -1,0 +1,179 @@
+/* ==========================================================================
+   GCS v7.0 Neural & Empathic Synchronization Interface
+   Global Design System Tokens & Responsive Foundation
+   Target Display: 1440p (2560x1440) + Scalable to 4K / Ultrawide / Laptops
+   ========================================================================== */
+
+:root {
+  /* Color Palette */
+  --bg-deep: #07090e;
+  --bg-surface: #0c1017;
+  --bg-card: rgba(16, 22, 34, 0.75);
+  --bg-card-hover: rgba(24, 32, 48, 0.85);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-bright: rgba(56, 189, 248, 0.3);
+  --border-accent: rgba(99, 102, 241, 0.4);
+
+  /* Text Colors */
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-accent: #38bdf8;
+
+  /* 4-Tier BCI Status Palette */
+  --status-optimal: #10b981;       /* Green: Homeostatic Normal (40-60%) */
+  --status-attention: #f59e0b;     /* Orange: Pending / Attention (60-75%) */
+  --status-elevated: #ea580c;      /* Bloody Orange: High Activity (75-85%) */
+  --status-danger: #ef4444;        /* Crimson Red: Crisis / Overload (>85%) */
+  
+  --status-optimal-glow: rgba(16, 185, 129, 0.35);
+  --status-attention-glow: rgba(245, 158, 11, 0.35);
+  --status-elevated-glow: rgba(234, 88, 12, 0.45);
+  --status-danger-glow: rgba(239, 68, 68, 0.55);
+
+  /* Cyber Accents */
+  --cyan-accent: #00f0ff;
+  --purple-accent: #8b5cf6;
+  --pink-accent: #ec4899;
+
+  /* Typography */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-display: 'Rajdhani', sans-serif;
+
+  /* Shadows & Glassmorphism */
+  --glass-bg: rgba(12, 17, 26, 0.72);
+  --glass-blur: blur(16px);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+  --glow-cyan: 0 0 20px rgba(0, 240, 255, 0.25);
+  --glow-box: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+
+  /* Spacing & Sizing Base (Responsive at 1440p) */
+  --header-height: 4.25rem;
+  --gutter: 1.25rem;
+}
+
+/* Base Scaling for 1440p Baseline */
+html {
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+/* 1440p standard display (1920x1080 to 2560x1440) */
+@media screen and (min-width: 1440px) {
+  html {
+    font-size: 15px;
+  }
+}
+
+/* 2K / 4K Ultra-wide displays (> 1920px) */
+@media screen and (min-width: 1920px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+@media screen and (min-width: 2560px) {
+  html {
+    font-size: 18px;
+  }
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  user-select: none;
+}
+
+/* Background Cyber Grid Accent */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: 
+    radial-gradient(circle at 50% 20%, rgba(56, 189, 248, 0.04) 0%, transparent 60%),
+    radial-gradient(circle at 85% 75%, rgba(139, 92, 246, 0.03) 0%, transparent 50%),
+    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Custom Sleek Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-accent);
+}
+
+/* Utility Animations */
+@keyframes pulseGlow {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(1000%); }
+}
+
+@keyframes heartBeat {
+  0% { transform: scale(1); }
+  14% { transform: scale(1.18); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.12); }
+  70% { transform: scale(1); }
+}
+
+.pulse-optimal {
+  animation: pulseGlow 2s infinite ease-in-out;
+  box-shadow: 0 0 12px var(--status-optimal-glow);
+}
+
+.pulse-attention {
+  animation: pulseGlow 1.5s infinite ease-in-out;
+  box-shadow: 0 0 14px var(--status-attention-glow);
+}
+
+.pulse-elevated {
+  animation: pulseGlow 1.2s infinite ease-in-out;
+  box-shadow: 0 0 16px var(--status-elevated-glow);
+}
+
+.pulse-danger {
+  animation: pulseGlow 0.8s infinite ease-in-out;
+  box-shadow: 0 0 20px var(--status-danger-glow);
+}

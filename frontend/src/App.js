@@ -1,90 +1,145 @@
-import React, { useState, useEffect } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Sphere, Text } from '@react-three/drei';
+import React, { useState } from 'react';
 import './App.css';
-
-const BrainModel = ({ activityDots }) => {
-  return (
-    <>
-      <Text position={[0, 2.5, 0]} fontSize={0.3} color="white">
-        3D Neural Activity
-      </Text>
-      <Sphere args={[2, 32, 32]}>
-        <meshStandardMaterial color="#333" wireframe />
-      </Sphere>
-    </>
-  );
-};
+import { useBCIData, PRESET_SCENARIOS } from './hooks/useBCIData';
+import { HeaderBar } from './components/HeaderBar';
+import { PhysiologicalColumn } from './components/PhysiologicalColumn';
+import { BrainCanvas } from './components/BrainCanvas';
+import { VitruvianColumn } from './components/VitruvianColumn';
+import { SimulationModal } from './components/SimulationModal';
+import { PatientProfileModal } from './components/PatientProfileModal';
+import { SessionMenuModal } from './components/SessionMenuModal';
+import { Sparkles, CheckCircle2 } from 'lucide-react';
 
 function App() {
-  const [systemStatus, setSystemStatus] = useState({ text: 'CONNECTING...', color: 'orange' });
-  const [affectiveState, setAffectiveState] = useState(null);
+  const [isSimModalOpen, setIsSimModalOpen] = useState(false);
+  const [isPatientModalOpen, setIsPatientModalOpen] = useState(false);
+  const [isSessionMenuOpen, setIsSessionMenuOpen] = useState(false);
 
-  useEffect(() => {
-    const connectWebSocket = () => {
-      const ws = new WebSocket('ws://localhost:8000/ws');
+  const {
+    connectionStatus,
+    networkPing,
+    pushHz,
+    activeScenario,
+    selectScenario,
+    channelCount,
+    setChannelCount,
+    activeBandFilter,
+    setActiveBandFilter,
+    patientData,
+    setPatientData,
+    notification,
+    triggerNotification,
+    affectiveState,
+    affectiveHistory,
+    vitals,
+    eegBands,
+    regionActivations,
+    somaticHotspots,
+    selectedRegion,
+    setSelectedRegion,
+    selectedHotspot,
+    setSelectedHotspot,
+    restoreSession
+  } = useBCIData();
 
-      ws.onopen = () => setSystemStatus({ text: 'CONNECTED', color: 'green' });
-      ws.onmessage = (event) => setAffectiveState(JSON.parse(event.data).affective);
-      ws.onclose = () => {
-        setSystemStatus({ text: 'DISCONNECTED', color: 'red' });
-        setTimeout(connectWebSocket, 3000); // Attempt to reconnect after 3 seconds
-      };
-      ws.onerror = () => ws.close();
-    };
-    connectWebSocket();
-  }, []);
-
-  const getStrengthColor = (strength) => {
-    if (strength >= 40 && strength <= 60) return 'green';
-    if (strength > 60 && strength <= 80) return 'orange';
-    return 'red';
-  };
+  const activeScenarioObj = PRESET_SCENARIOS[activeScenario];
 
   return (
-    <div className="App">
-      <header className="header-bar">
-        <div className="header-title">Grand Council Sentient</div>
-        <div className={`status-indicator ${systemStatus.color}`}>{systemStatus.text}</div>
-        <div className="user-profile">V1B3hr</div>
-      </header>
-
-      <main className="main-content">
-        <div className="left-column">
-          <div className="column-title">Physiological & Neural State</div>
-          <div className="canvas-container">
-            <Canvas>
-              <ambientLight intensity={0.8} />
-              <pointLight position={[10, 10, 10]} />
-              <BrainModel />
-              <OrbitControls />
-            </Canvas>
-          </div>
+    <div className="app-container">
+      {/* Action Feedback Toast Notification */}
+      {notification && (
+        <div className="app-toast-notification">
+          <CheckCircle2 size={16} style={{ color: 'var(--status-optimal)' }} />
+          <span>{notification}</span>
         </div>
+      )}
 
-        <div className="right-column">
-          <div className="column-title">Affective (Emotional) State</div>
-          <div className="emotion-display">
-            {affectiveState ? (
-              <>
-                <div className="emotion-icon">{affectiveState.icon}</div>
-                <div className="emotion-label">{affectiveState.label}</div>
-                <div className="emotion-strength">
-                  <div className="strength-bar-container">
-                    <div className={`strength-bar ${getStrengthColor(affectiveState.strength)}`} style={{ width: `${affectiveState.strength}%` }}></div>
-                  </div>
-                  <span className="strength-percent">{affectiveState.strength}%</span>
-                </div>
-                <div className={`safe-zone-indicator ${getStrengthColor(affectiveState.strength)}`}>
-                  {affectiveState.strength >= 40 && affectiveState.strength <= 60 ? 'Homeostatic Range' : 'Outside Range'}
-                </div>
-              </>
-            ) : (
-              <div className="loading-state">Awaiting data...</div>
-            )}
-          </div>
-        </div>
+      {/* 1. Top Row User Info & System Status Header */}
+      <HeaderBar
+        connectionStatus={connectionStatus}
+        networkPing={networkPing}
+        pushHz={pushHz}
+        channelCount={channelCount}
+        patientData={patientData}
+        activeScenarioName={activeScenarioObj?.name}
+        onOpenSimModal={() => setIsSimModalOpen(true)}
+        onOpenPatientModal={() => setIsPatientModalOpen(true)}
+        onOpenSessionMenu={() => setIsSessionMenuOpen(true)}
+      />
+
+      {/* 2. Main 1440p 12-Column Responsive Dashboard Grid */}
+      <main className="dashboard-grid">
+        {/* Left Column: Physiological & Neural Readings (Requirement 3: No overlap, Requirement 4: Clickable channels & 7-day history) */}
+        <PhysiologicalColumn
+          vitals={vitals}
+          eegBands={eegBands}
+          channelCount={channelCount}
+          onChangeChannels={(ch) => setChannelCount(ch)}
+          activeBandFilter={activeBandFilter}
+          onSelectBandFilter={setActiveBandFilter}
+          onTriggerNotification={triggerNotification}
+        />
+
+        {/* Center Column: 3D Focal Brain Atlas (Requirement 1, 2, 5, 7: Smaller bubbles, dissolve, zoom focus, right-click actions) */}
+        <BrainCanvas
+          regionActivations={regionActivations}
+          selectedRegion={selectedRegion}
+          activeBandFilter={activeBandFilter}
+          onSelectRegion={(reg) => {
+            setSelectedRegion(reg);
+            if (reg) {
+              // Highlight corresponding wave in EEG panel
+              setActiveBandFilter(reg.defaultBand);
+            }
+          }}
+          onTriggerNotification={triggerNotification}
+        />
+
+        {/* Right Column: Somatic Biometric Map (2D/3D Organ View) & Empathy Engine (Requirement 6, 8: Detailed organs, right-click, 20-state history) */}
+        <VitruvianColumn
+          affectiveState={affectiveState}
+          affectiveHistory={affectiveHistory}
+          somaticHotspots={somaticHotspots}
+          selectedHotspot={selectedHotspot}
+          onSelectHotspot={setSelectedHotspot}
+          onTriggerNotification={triggerNotification}
+        />
       </main>
+
+      {/* 3. Scenario & Emulation Controller Modal */}
+      <SimulationModal
+        isOpen={isSimModalOpen}
+        onClose={() => setIsSimModalOpen(false)}
+        activeScenario={activeScenario}
+        onSelectScenario={selectScenario}
+      />
+
+      {/* 4. Patient Profile & Upload Records Modal (Requirement 9) */}
+      <PatientProfileModal
+        isOpen={isPatientModalOpen}
+        onClose={() => setIsPatientModalOpen(false)}
+        patientData={patientData}
+        onSavePatientData={setPatientData}
+        onTriggerNotification={triggerNotification}
+      />
+
+      {/* 5. System Session Menu Modal (Requirement 10) */}
+      <SessionMenuModal
+        isOpen={isSessionMenuOpen}
+        onClose={() => setIsSessionMenuOpen(false)}
+        sessionState={{
+          patientData,
+          channelCount,
+          activeScenario,
+          affectiveState,
+          affectiveHistory,
+          vitals,
+          eegBands,
+          regionActivations
+        }}
+        onLoadSession={restoreSession}
+        onTriggerNotification={triggerNotification}
+      />
     </div>
   );
 }
