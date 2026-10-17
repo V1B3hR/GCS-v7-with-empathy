@@ -21,7 +21,7 @@ The GCS is a full-stack, modular system built on a foundation of cutting-edge re
   - **Advice & Guidance**: Evidence-based recommendations and skill-building support
   - **Issue Notification**: Advanced crisis detection with 6-level severity classification and emergency escalation
 
-🛡️ **The Active Therapeutic Framework**: The GCS is architected for closed-loop therapeutic action. All potential interventions are governed by the AI_Guardian and a strict Human-in-the-Loop (HITL) consent protocol, ensuring the user is always in control.
+🛡️ **The Active Therapeutic Framework**: The GCS is architected for closed-loop therapeutic action. All potential interventions are governed by the AI_Guardian and a strict Human-in-the-Loop (HITL) consent protocol. Policy output can only create a time-limited intervention request, and a separately authenticated human/user decision must explicitly approve that exact request before hardware can be triggered.
 
 🌱 **The Living Architecture**: The system is designed as a co-adaptive agent (Phase 10). It uses an Online Learning Module to learn from real-time user feedback, allowing it to continuously personalize and improve its understanding, creating a truly symbiotic partnership.
   
@@ -61,6 +61,7 @@ Simulation and demo shortcuts are disabled in production when `GCS_ENV=productio
 
 - `GCS_ALLOW_SIMULATED_DATA=false` disables synthetic fallback for data loaders/streaming.
 - `GCS_ENABLE_DEMO_AUTO_CONSENT=false` keeps pilot participants pending until explicit consent is recorded.
+- Neuromodulation requests are explicit, request-bound, one-time, and expire by default after 60 seconds; post-intervention feedback never authorizes a future action.
 Project Structure
 The repository is organized as a professional monorepo.
 code
